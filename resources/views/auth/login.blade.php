@@ -46,7 +46,7 @@
 </style>
 
 <!-- full-screen background using the same image asset -->
-<div class="login-bg" aria-hidden="true" style="position:fixed;inset:0;z-index:800;background-image:url('{{ asset('..custom/img/loginbg.jpg') }}');background-size:cover;background-position:center center;background-repeat:no-repeat;pointer-events:none;">
+<div class="login-bg" aria-hidden="true" style="position:fixed;inset:0;z-index:800;background-image:url('{{ asset('custom/img/loginbg.jpg') }}');background-size:cover;background-position:center center;background-repeat:no-repeat;pointer-events:none;">
 </div>
 
 <form role="form" action="{{ url('/login') }}" method="POST" autocomplete="{{ (config('auth.login_autocomplete') === true) ? 'on' : 'off'  }}">
