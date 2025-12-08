@@ -335,6 +335,7 @@
 
 
 
+@if(false)
 
 <div class="row">
   <div class="col-md-12">
@@ -436,11 +437,8 @@
           <!--/ row -->
         </div>
       </div> <!-- /box-body-->
-    </div> <!--/box-default-->
-
-
-
-
+    </div> /box-default
+@endif
 
 
   @section('moar_scripts')
