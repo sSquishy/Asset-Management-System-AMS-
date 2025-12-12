@@ -147,6 +147,103 @@
 </div>
 </div>
 
+@php
+    $assets = \App\Models\Asset::AssetsForShow()->get();
+    $totalPurchase = $assets->sum('purchase_cost');
+    $currentTotal = 0;
+    foreach($assets as $a){ $currentTotal += (float)($a->getDepreciatedValue() ?? 0); }
+    $depreciationAmount = $totalPurchase - $currentTotal;
+    $depreciationPercent = $totalPurchase > 0 ? round(($depreciationAmount / $totalPurchase) * 100, 2) : 0;
+
+    // Build a simple 6-month purchase-cost trend (grouped by purchase_date month)
+    $trend = [];
+    for($i = 5; $i >= 0; $i--) {
+        $start = \Carbon\Carbon::now()->subMonths($i)->startOfMonth();
+        $end = \Carbon\Carbon::now()->subMonths($i)->endOfMonth();
+        $sum = \App\Models\Asset::AssetsForShow()
+                ->whereNotNull('purchase_date')
+                ->whereBetween('purchase_date', [$start->toDateString(), $end->toDateString()])
+                ->sum('purchase_cost');
+        $trend[] = (float) $sum;
+    }
+
+    // Build a 6-month warranty expiration forecast (counts per upcoming month)
+    $warrantySeries = [];
+    $warrantyLabels = [];
+    for ($i = 0; $i < 6; $i++) {
+        $start = \Carbon\Carbon::now()->addMonths($i)->startOfMonth();
+        $end = \Carbon\Carbon::now()->addMonths($i)->endOfMonth();
+        $warrantyLabels[] = $start->format('M Y');
+        $count = $assets->filter(function($a) use ($start, $end) {
+            if (! $a->purchase_date || ! $a->warranty_months) return false;
+            try {
+                $expiry = \Carbon\Carbon::parse($a->purchase_date)->addMonths($a->warranty_months);
+            } catch (\Exception $e) { return false; }
+            return $expiry->between($start, $end);
+        })->count();
+        $warrantySeries[] = (int) $count;
+    }
+
+    $metrics = [
+        [
+            'value' => \App\Helpers\Helper::formatCurrencyOutput($totalPurchase),
+            'subtitle' => 'Total Purchase Cost',
+            'trend' => $trend,
+            'trendLabel' => '6-month purchases'
+        ],
+        [
+            'value' => \App\Helpers\Helper::formatCurrencyOutput($currentTotal),
+            'subtitle' => 'Current Total Value (after depreciation)'
+        ],
+        [
+            'value' => \App\Helpers\Helper::formatCurrencyOutput($depreciationAmount),
+            'subtitle' => 'Total Depreciation Amount',
+        ],
+    ];
+@endphp
+
+<div class="row" style="margin-bottom:10px;">
+    <div class="col-md-4">
+        @include('components.asset-depreciation-card', ['metrics' => $metrics])
+    </div>
+    <div class="col-md-4">
+        @include('components.warranty-expiration-forecast', ['series' => $warrantySeries, 'labels' => $warrantyLabels])
+    </div>
+    <div class="col-md-4">
+        @php
+            // Build failures summary: top assets by maintenance count
+            $failureRows = \App\Models\Maintenance::select('asset_id', \DB::raw('count(*) as failures'), \DB::raw('max(start_date) as last_failure'))
+                ->groupBy('asset_id')
+                ->orderByDesc('failures')
+                ->take(6)
+                ->get();
+            $failureItems = [];
+            foreach($failureRows as $fr) {
+                $asset = \App\Models\Asset::with('model')->find($fr->asset_id);
+                if(!$asset) continue;
+                $failureItems[] = [
+                    'label' => ($asset->name ?: $asset->asset_tag ?: 'Asset #'.$asset->id),
+                    'model' => ($asset->model->name ?? $asset->model_number ?? ''),
+                    'count' => (int) $fr->failures,
+                    'last' => $fr->last_failure ? \Carbon\Carbon::parse($fr->last_failure)->toDateString() : null,
+                ];
+            }
+        @endphp
+        @include('components.assets-most-failures-card', ['items' => $failureItems])
+    </div>
+    {{-- <div class="col-md-6">
+        <!-- Optional: place for Depreciation % or details -->
+        <div class="box box-default">
+            <div class="box-body" style="display:flex; align-items:center; justify-content:center; height:100%">
+                <div style="text-align:center">
+                    <div style="font-size:22px; font-weight:700">{{ $depreciationPercent }}%</div>
+                    <div style="font-size:12px; color:#6b7280">Depreciation % (Overall)</div>
+                </div>
+            </div>
+        </div>
+    </div> --}}
+</div>
+
 @if ($counts['grand_total'] == 0)
 
     <div class="row">
