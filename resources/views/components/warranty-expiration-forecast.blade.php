@@ -37,7 +37,9 @@ $id = 'warranty_'.substr(md5($title),0,8);
     </div>
 
     <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
-        <div style="font-size:12px; color:{{ $textColor }}">Forecast trend (relative)</div>
+        <div style="font-size:12px; color:{{ $textColor }}">
+            {{-- Forecast trend (relative) --}}
+        </div>
         <div style="font-size:12px; color:#6b7280">&nbsp;</div>
     </div>
 

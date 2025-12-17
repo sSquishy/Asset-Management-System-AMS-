@@ -302,9 +302,7 @@
                     <div class="col-md-12">
                         <div class="table-responsive">
                             <div id="toolbarTopSuppliers" class="btn-group" style="margin-bottom:8px"></div>
-                            @if($topSuppliers->isEmpty())
-                                <div class="text-muted">No supplier repair data available.</div>
-                            @else
+
                             <table
                                 id="dashTopSuppliers"
                                 class="table table-striped snipe-table"
@@ -329,17 +327,23 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($topSuppliers as $ts)
-                                    <tr>
-                                        <td>{{ $ts['name'] }}</td>
-                                        <td class="text-right" style="font-weight:700">{{ number_format($ts['repairs']) }}</td>
-                                        <td class="text-right">{{ $ts['avg_duration'] !== null ? $ts['avg_duration'] : '—' }}</td>
-                                        <td class="text-right">{{ $ts['avg_cost'] !== null ? \App\Helpers\Helper::formatCurrencyOutput($ts['avg_cost']) : '—' }}</td>
-                                    </tr>
-                                    @endforeach
+                                    @if($topSuppliers->isEmpty())
+                                        <tr>
+                                            <td colspan="4" class="text-muted">No supplier repair data available.</td>
+                                        </tr>
+                                    @else
+                                        @foreach($topSuppliers as $ts)
+                                        <tr>
+                                            <td>{{ $ts['name'] }}</td>
+                                            <td class="text-right" style="font-weight:700">{{ number_format($ts['repairs']) }}</td>
+                                            <td class="text-right">{{ $ts['avg_duration'] !== null ? $ts['avg_duration'] : '—' }}</td>
+                                            <td class="text-right">{{ $ts['avg_cost'] !== null ? \App\Helpers\Helper::formatCurrencyOutput($ts['avg_cost']) : '—' }}</td>
+                                        </tr>
+                                        @endforeach
+                                    @endif
                                 </tbody>
                             </table>
-                            @endif
+
                         </div><!-- /.table-responsive -->
                     </div>
                 </div><!-- /.row -->
