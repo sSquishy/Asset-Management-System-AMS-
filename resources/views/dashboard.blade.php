@@ -200,16 +200,48 @@
             'subtitle' => 'Total Depreciation Amount',
         ],
     ];
+    // Top suppliers by repairs: compute repairs count, average duration (days) and average cost
+    $tv_sort = request()->get('tv_sort', 'repairs');
+    $tv_order = strtolower(request()->get('tv_order', 'desc')) === 'asc' ? 'asc' : 'desc';
+    $supplierRows = \App\Models\Maintenance::select('supplier_id', \DB::raw('count(*) as repairs'), \DB::raw('avg(case when completion_date is not null then datediff(completion_date, start_date) end) as avg_duration'), \DB::raw('avg(cost) as avg_cost'))
+        ->whereNotNull('supplier_id')
+        ->groupBy('supplier_id')
+        ->get();
+
+    $supplierIds = $supplierRows->pluck('supplier_id')->unique()->filter()->values()->all();
+    $suppliers = \App\Models\Supplier::whereIn('id', $supplierIds)->get()->keyBy('id');
+
+    $topSuppliers = $supplierRows->map(function($r) use ($suppliers) {
+        $s = $suppliers->get($r->supplier_id);
+        return [
+            'id' => $r->supplier_id,
+            'name' => $s ? $s->name : trans('general.unknown'),
+            'repairs' => (int) $r->repairs,
+            'avg_duration' => $r->avg_duration !== null ? round($r->avg_duration, 1) : null,
+            'avg_cost' => $r->avg_cost !== null ? round($r->avg_cost, 2) : null,
+        ];
+    });
+
+    // apply simple request-driven sorting on the collection
+    if ($tv_sort == 'avg_duration') {
+        $topSuppliers = $tv_order == 'asc' ? $topSuppliers->sortBy('avg_duration') : $topSuppliers->sortByDesc('avg_duration');
+    } elseif ($tv_sort == 'avg_cost') {
+        $topSuppliers = $tv_order == 'asc' ? $topSuppliers->sortBy('avg_cost') : $topSuppliers->sortByDesc('avg_cost');
+    } else {
+        $topSuppliers = $tv_order == 'asc' ? $topSuppliers->sortBy('repairs') : $topSuppliers->sortByDesc('repairs');
+    }
+
+    $topSuppliers = $topSuppliers->values();
 @endphp
 
 <div class="row" style="margin-bottom:10px;">
-    <div class="col-md-4">
+    <div class="col-md-4" style="margin-bottom:12px;">
         @include('components.asset-depreciation-card', ['metrics' => $metrics])
     </div>
-    <div class="col-md-4">
+    <div class="col-md-4" style="margin-bottom:12px;">
         @include('components.warranty-expiration-forecast', ['series' => $warrantySeries, 'labels' => $warrantyLabels])
     </div>
-    <div class="col-md-4">
+    <div class="col-md-4" style="margin-bottom:12px;">
         @php
             // Build failures summary: top assets by maintenance count
             $failureRows = \App\Models\Maintenance::select('asset_id', \DB::raw('count(*) as failures'), \DB::raw('max(start_date) as last_failure'))
@@ -244,7 +276,339 @@
     </div> --}}
 </div>
 
-@if ($counts['grand_total'] == 0)
+<!-- Top Supplier by Number of Repairs card (placed below depreciation / warranty / failures row) -->
+<div class="row" style="margin-top:10px;">
+    <div class="col-md-8">
+        <div class="box box-default">
+            <div class="box-header with-border">
+                <h2 class="box-title" style="font-weight:700">Top Supplier by Number of Repairs</h2>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse" aria-hidden="true">
+                        <x-icon type="minus" />
+                        <span class="sr-only">{{ trans('general.collapse') }}</span>
+                    </button>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-box-tool dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                            <x-icon type="more-vert" />
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                            <li><a href="#">{{ trans('general.export') }}</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div><!-- /.box-header -->
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="table-responsive">
+                            <div id="toolbarTopSuppliers" class="btn-group" style="margin-bottom:8px"></div>
+                            @if($topSuppliers->isEmpty())
+                                <div class="text-muted">No supplier repair data available.</div>
+                            @else
+                            <table
+                                id="dashTopSuppliers"
+                                class="table table-striped snipe-table"
+                                data-toggle="table"
+                                data-toolbar="#toolbarTopSuppliers"
+                                data-fixed-table-toolbar="true"
+                                data-cookie-id-table="dashTopSuppliers"
+                                data-height="320"
+                                data-search="true"
+                                data-show-columns="true"
+                                data-show-refresh="true"
+                                data-show-export="true"
+                                data-show-fullscreen="true"
+                                data-pagination="false"
+                            >
+                                <thead>
+                                    <tr>
+                                        <th data-field="supplier_name" class="col-sm-5">Supplier Name</th>
+                                        <th data-field="repairs" data-sortable="true" data-align="right" class="col-sm-2">Total Repair Count</th>
+                                        <th data-field="avg_duration" data-sortable="true" data-align="right" class="col-sm-2">Average Repair Duration (Days)</th>
+                                        <th data-field="avg_cost" data-sortable="true" data-align="right" class="col-sm-3">Average Repair Cost</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($topSuppliers as $ts)
+                                    <tr>
+                                        <td>{{ $ts['name'] }}</td>
+                                        <td class="text-right" style="font-weight:700">{{ number_format($ts['repairs']) }}</td>
+                                        <td class="text-right">{{ $ts['avg_duration'] !== null ? $ts['avg_duration'] : '—' }}</td>
+                                        <td class="text-right">{{ $ts['avg_cost'] !== null ? \App\Helpers\Helper::formatCurrencyOutput($ts['avg_cost']) : '—' }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                            @endif
+                        </div><!-- /.table-responsive -->
+                    </div>
+                </div><!-- /.row -->
+            </div><!-- /.box-body -->
+        </div><!-- /.box -->
+    </div>
+    <div class="col-md-4">
+        @php
+            $reliability = null;
+            if (!empty($topSuppliers) && $topSuppliers->count() > 0) {
+                $first = $topSuppliers->first();
+                $reliability = \App\Services\SupplierReliabilityService::computeSupplierScore($first['id']);
+                $supplierName = $first['name'];
+            }
+        @endphp
+
+        <div class="box box-default">
+            <div class="box-header with-border">
+                <h2 class="box-title" style="font-weight:700">Supplier Reliability Score</h2>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse" aria-hidden="true">
+                        <x-icon type="minus" />
+                        <span class="sr-only">{{ trans('general.collapse') }}</span>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body" style="display:flex; flex-direction:column; justify-content:center;">
+                @if(!$reliability)
+                    <div class="text-muted">No supplier reliability data available.</div>
+                @else
+                    <div style="margin-bottom:8px; font-weight:600">{{ $supplierName }}</div>
+                    <div style="margin-bottom:6px">Numeric Score</div>
+                    <div class="progress" style="height:28px; margin-bottom:12px">
+                        <div class="progress-bar bg-{{ $reliability['color'] }}" role="progressbar" aria-valuenow="{{ $reliability['score'] }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ $reliability['score'] }}%; font-weight:700;">{{ $reliability['score'] }}</div>
+                    </div>
+
+                    <div style="margin-bottom:6px">Rating</div>
+                    <div style="height:36px; display:flex; align-items:center; justify-content:center; border-radius:4px;" class="bg-{{ $reliability['color'] }} text-white">
+                        <div style="font-weight:700">{{ $reliability['rating'] }}</div>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+
+@php
+    // Predicted replacement table: compute simple RUL (remaining useful life)
+    $predicted = collect();
+    $now = \Carbon\Carbon::now();
+    foreach ($assets as $a) {
+        if (! $a->purchase_date) continue;
+        try {
+            $purchased = \Carbon\Carbon::parse($a->purchase_date);
+        } catch (\Exception $e) { continue; }
+        $ageMonths = $purchased->diffInMonths($now);
+        $ageYears = round($ageMonths / 12, 1);
+
+        // Determine expected lifespan (years) with fallbacks
+        $expected = null;
+        if (data_get($a, 'expected_life_years')) {
+            $expected = (float) data_get($a, 'expected_life_years');
+        } elseif (data_get($a, 'expected_life')) {
+            $expected = (float) data_get($a, 'expected_life');
+        } elseif (!empty($a->warranty_months)) {
+            $expected = max((float)$a->warranty_months / 12 * 1.5, 3);
+        } elseif (data_get($a, 'model.expected_life_years')) {
+            $expected = (float) data_get($a, 'model.expected_life_years');
+        }
+        if (! $expected) { $expected = 5.0; } // sensible default if nothing found
+
+        $remaining = round($expected - $ageYears, 1);
+
+        // Recent maintenance/failure (within 180 days)
+        $lastMaint = \App\Models\Maintenance::where('asset_id', $a->id)->orderByDesc('start_date')->first();
+        $recentFailure = false;
+        $lastDate = null;
+        $lastType = null;
+        if ($lastMaint) {
+            $lastDate = $lastMaint->start_date ? \Carbon\Carbon::parse($lastMaint->start_date)->toDateString() : null;
+            $lastType = $lastMaint->asset_maintenance_type ?? null;
+            $recentFailure = $lastMaint->start_date ? \Carbon\Carbon::parse($lastMaint->start_date)->diffInDays($now) <= 180 : false;
+        }
+
+        // Recommended replacement date
+        if ($remaining <= 0) {
+            $recommended = $now->toDateString();
+        } else {
+            $recommended = \Carbon\Carbon::now()->addMonths(ceil($remaining * 12))->startOfMonth()->toDateString();
+        }
+
+        $predicted->push([
+            'id' => $a->id,
+            'name' => $a->name ?: ($a->asset_tag ?: 'Asset #'.$a->id),
+            'category' => optional($a->category)->name ?: optional($a->model)->name ?: '',
+            'age_years' => $ageYears,
+            'expected_life_years' => round($expected, 1),
+            'remaining_years' => $remaining,
+            'recent_failure' => $recentFailure,
+            'last_maintenance' => $lastDate,
+            'last_type' => $lastType,
+            'recommended_date' => $recommended,
+        ]);
+    }
+
+    // sort by lowest remaining useful life (most urgent) and take top 12
+    $predicted = $predicted->sortBy('remaining_years')->values()->take(12);
+@endphp
+
+<!-- Predicted Replacements -->
+<div class="row" style="margin-top:10px;">
+    <div class="col-md-8">
+        <div class="box box-default">
+            <div class="box-header with-border">
+                <h2 class="box-title" style="font-weight:700">Assets Predicted For Replacement</h2>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse" aria-hidden="true">
+                        <x-icon type="minus" />
+                        <span class="sr-only">{{ trans('general.collapse') }}</span>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="table-responsive">
+                    @if($predicted->isEmpty())
+                        <div class="text-muted">No assets with replacement predictions available.</div>
+                    @else
+                        <table
+                            id="dashPredictedReplacements"
+                            class="table table-striped snipe-table"
+                            data-toggle="table"
+                            data-fixed-table-toolbar="true"
+                            data-cookie-id-table="dashPredictedReplacements"
+                            data-height="300"
+                            data-pagination="false"
+                        >
+                            <thead>
+                                <tr>
+                                    <th>Asset Name</th>
+                                    <th>Category</th>
+                                    <th>Age (yrs)</th>
+                                    <th>Expected Lifespan (yrs)</th>
+                                    <th>Remaining Useful Life (yrs)</th>
+                                    <th>Condition / Recent Failure</th>
+                                    <th>Recommended Replacement Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($predicted as $p)
+                                <tr>
+                                    <td>{{ $p['name'] }}</td>
+                                    <td>{{ $p['category'] }}</td>
+                                    <td>{{ $p['age_years'] }}</td>
+                                    <td>{{ $p['expected_life_years'] }}</td>
+                                    <td style="font-weight:700">{{ $p['remaining_years'] <= 0 ? 'Overdue' : $p['remaining_years'] }}</td>
+                                    <td>
+                                        @if($p['recent_failure'])
+                                            <span class="text-danger">Recent failure ({{ $p['last_maintenance'] }})</span>
+                                        @elseif($p['last_maintenance'])
+                                            <span class="text-muted">Last serviced {{ $p['last_maintenance'] }}</span>
+                                        @else
+                                            <span class="text-muted">No recent service</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ $p['recommended_date'] }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    @php
+        // Assets nearing warranty expiration (within next N days)
+        $warrantySoon = collect();
+        $thresholdDays = 60; // consider "nearing" as within next 60 days
+        foreach ($assets as $a) {
+            if (! $a->purchase_date || empty($a->warranty_months)) continue;
+            try {
+                $expiry = \Carbon\Carbon::parse($a->purchase_date)->addMonths($a->warranty_months);
+            } catch (\Exception $e) { continue; }
+            $now = \Carbon\Carbon::now();
+            if ($expiry->lt($now)) continue; // already expired
+            $daysRemaining = $now->diffInDays($expiry);
+            if ($daysRemaining <= $thresholdDays) {
+                $assigned = optional($a->assigned_user)->name ?: optional($a->assigned_to)->name ?: optional($a->user)->name ?: '';
+                $department = optional($a->location)->name ?: optional($a->department)->name ?: '';
+                $supplier = optional($a->supplier)->name ?: '';
+                $warrantySoon->push([
+                    'asset_tag' => $a->asset_tag ?: '',
+                    'name' => $a->name ?: ('Asset #'.$a->id),
+                    'category' => optional($a->category)->name ?: optional($a->model)->name ?: '',
+                    'assigned' => $assigned,
+                    'department' => $department,
+                    'warranty_date' => $expiry->toDateString(),
+                    'days_remaining' => $daysRemaining,
+                    'supplier' => $supplier,
+                ]);
+            }
+        }
+        $warrantySoon = $warrantySoon->sortBy('days_remaining')->values();
+    @endphp
+
+    <div class="row" style="margin-top:10px;">
+        <div class="col-md-8">
+            <div class="box box-default">
+                <div class="box-header with-border">
+                    <h2 class="box-title" style="font-weight:700">Asset Nearing Warranty Expiration</h2>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse" aria-hidden="true">
+                            <x-icon type="minus" />
+                            <span class="sr-only">{{ trans('general.collapse') }}</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div class="table-responsive">
+                        <table
+                            id="dashWarrantySoon"
+                            class="table table-striped snipe-table"
+                            data-toggle="table"
+                            data-fixed-table-toolbar="true"
+                            data-cookie-id-table="dashWarrantySoon"
+                            data-height="300"
+                            data-search="true"
+                            data-pagination="false"
+                        >
+                            <thead>
+                                <tr>
+                                    <th>Asset Tag</th>
+                                    <th>Asset Name</th>
+                                    <th>Category</th>
+                                    <th>Assigned To / Department</th>
+                                    <th>Warranty Date</th>
+                                    <th>Days Remaining</th>
+                                    <th>Supplier</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if($warrantySoon->isEmpty())
+                                    <tr>
+                                        <td colspan="7" class="text-muted">No assets nearing warranty expiration.</td>
+                                    </tr>
+                                @else
+                                    @foreach($warrantySoon as $w)
+                                    <tr>
+                                        <td>{{ $w['asset_tag'] }}</td>
+                                        <td>{{ $w['name'] }}</td>
+                                        <td>{{ $w['category'] }}</td>
+                                        <td>{{ $w['assigned'] ?: $w['department'] }}</td>
+                                        <td>{{ $w['warranty_date'] }}</td>
+                                        <td style="font-weight:700">{{ $w['days_remaining'] }}</td>
+                                        <td>{{ $w['supplier'] }}</td>
+                                    </tr>
+                                    @endforeach
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if ($counts['grand_total'] == 0)
 
     <div class="row">
         <div class="col-md-12">
