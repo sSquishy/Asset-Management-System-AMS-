@@ -23,8 +23,8 @@ $id = 'warranty_'.substr(md5($title),0,8);
         </div>
     </div>
 
-    <div style="flex:1; display:flex; align-items:center;">
-        <svg class="warranty-forecast-svg" width="100%" height="100%" viewBox="0 0 300 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="warranty forecast chart">
+    <div style="flex:1; display:flex; align-items:center; position:relative;">
+        <svg class="warranty-forecast-svg" width="100%" height="100%" viewBox="0 0 300 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="warranty forecast chart" style="display:block;">
             <defs>
                 <linearGradient id="grad-{{ $id }}" x1="0" x2="0" y1="0" y2="1">
                     <stop offset="0%" stop-color="{{ $accent }}" stop-opacity="0.14" />
@@ -33,7 +33,9 @@ $id = 'warranty_'.substr(md5($title),0,8);
             </defs>
             <polyline class="warranty-line" points="" fill="none" stroke="{{ $accent }}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
             <path class="warranty-fill" d="" fill="url(#grad-{{ $id }})" opacity="0.9"></path>
+            <g class="warranty-points"></g>
         </svg>
+        <div class="warranty-tooltip" style="position:absolute;pointer-events:none;display:none;padding:6px 8px;background:#111;color:#fff;border-radius:4px;font-size:12px;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,0.12);"></div>
     </div>
 
     <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
@@ -47,29 +49,94 @@ $id = 'warranty_'.substr(md5($title),0,8);
     (function(){
         var root = document.getElementById('{{ $id }}');
         if(!root) return;
-        var series = @json($series);
+        var series = @json($series) || [];
+        var labels = @json($labels) || [];
         var svg = root.querySelector('svg.warranty-forecast-svg');
         var line = root.querySelector('.warranty-line');
         var fill = root.querySelector('.warranty-fill');
-        if(!series || !Array.isArray(series) || series.length < 2){
-            // show a subtle flat line
-            line.setAttribute('points', '0,90 300,90');
-            fill.setAttribute('d', 'M0,120 L300,120 L300,90 L0,90 Z');
-            return;
+        var pointsGroup = root.querySelector('g.warranty-points');
+        var tooltip = root.querySelector('.warranty-tooltip');
+
+        function render(){
+            var rect = svg.getBoundingClientRect();
+            var w = Math.max(120, rect.width || 300);
+            var h = Math.max(60, rect.height || 120);
+
+            // padding inside svg
+            var padTop = 10, padBottom = 16;
+
+            if(!series || !Array.isArray(series) || series.length < 2){
+                // subtle flat line
+                var y = h * 0.75;
+                line.setAttribute('points', '0,'+y+' '+w+','+y);
+                fill.setAttribute('d', 'M0,'+h+' L'+w+','+h+' L'+w+','+y+' L0,'+y+' Z');
+                pointsGroup.innerHTML = '';
+                return;
+            }
+
+            var min = Math.min.apply(null, series);
+            var max = Math.max.apply(null, series);
+            if(min === max){ min = min - 1; max = max + 1; }
+
+            // compute points
+            var coords = series.map(function(v,i){
+                var x = (i/(series.length-1))*w;
+                var y = h - ((v - min)/(max - min))*(h - padTop - padBottom) - padBottom;
+                return {x:x, y:y, v:v, i:i};
+            });
+
+            var pts = coords.map(function(p){ return p.x.toFixed(2)+','+p.y.toFixed(2); }).join(' ');
+            line.setAttribute('points', pts);
+            var pathD = 'M' + coords.map(function(p){ return p.x+','+p.y; }).join(' L ') + ' L ' + w + ',' + h + ' L 0,' + h + ' Z';
+            fill.setAttribute('d', pathD);
+
+            // render point circles
+            pointsGroup.innerHTML = '';
+            coords.forEach(function(p){
+                var c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+                c.setAttribute('cx', p.x);
+                c.setAttribute('cy', p.y);
+                c.setAttribute('r', 5);
+                c.setAttribute('fill', '#fff');
+                c.setAttribute('stroke', '{{ $accent }}');
+                c.setAttribute('stroke-width', 2);
+                c.setAttribute('data-i', p.i);
+                c.style.cursor = 'pointer';
+
+                c.addEventListener('mouseenter', function(ev){
+                    var idx = parseInt(this.getAttribute('data-i'));
+                    var lbl = labels[idx] || ('Point '+(idx+1));
+                    var val = series[idx];
+                    tooltip.style.display = 'block';
+                    tooltip.innerHTML = '<strong style="display:block;margin-bottom:4px;">'+lbl+'</strong>' + String(val);
+                    // position tooltip relative to root
+                    var rootRect = root.getBoundingClientRect();
+                    var left = ev.clientX - rootRect.left + 8;
+                    var top = ev.clientY - rootRect.top - 38;
+                    // clamp within root
+                    var tRectW = tooltip.offsetWidth || 120;
+                    if(left + tRectW > rootRect.width) left = rootRect.width - tRectW - 8;
+                    if(top < 4) top = 4;
+                    tooltip.style.left = left+'px';
+                    tooltip.style.top = top+'px';
+                });
+                c.addEventListener('mouseleave', function(){ tooltip.style.display = 'none'; });
+
+                pointsGroup.appendChild(c);
+            });
         }
-        var w = 300, h = 120;
-        var min = Math.min.apply(null, series);
-        var max = Math.max.apply(null, series);
-        if(min === max){ min = min - 1; max = max + 1; }
-        var pts = series.map(function(v,i){
-            var x = (i/(series.length-1))*w;
-            var y = h - ((v - min)/(max - min))* (h - 20) - 10; // padding
-            return x.toFixed(2)+','+y.toFixed(2);
-        }).join(' ');
-        line.setAttribute('points', pts);
-        // build closed path for fill
-        var pathD = 'M' + pts.split(' ').join(' L ') + ' L ' + w + ',' + h + ' L 0,' + h + ' Z';
-        fill.setAttribute('d', pathD);
+
+        // initial render
+        render();
+
+        // re-render on resize
+        var ro = null;
+        if (window.ResizeObserver) {
+            ro = new ResizeObserver(function(){ render(); });
+            ro.observe(svg);
+        } else {
+            window.addEventListener('resize', render);
+        }
     })();
     </script>
 

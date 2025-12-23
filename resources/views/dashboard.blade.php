@@ -276,119 +276,7 @@
     </div> --}}
 </div>
 
-<!-- Top Supplier by Number of Repairs card (placed below depreciation / warranty / failures row) -->
-<div class="row" style="margin-top:10px;">
-    <div class="col-md-8">
-        <div class="box box-default">
-            <div class="box-header with-border">
-                <h2 class="box-title" style="font-weight:700">Top Supplier by Number of Repairs</h2>
-                <div class="box-tools pull-right">
-                    <button type="button" class="btn btn-box-tool" data-widget="collapse" aria-hidden="true">
-                        <x-icon type="minus" />
-                        <span class="sr-only">{{ trans('general.collapse') }}</span>
-                    </button>
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-box-tool dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                            <x-icon type="more-vert" />
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-right" role="menu">
-                            <li><a href="#">{{ trans('general.export') }}</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div><!-- /.box-header -->
-            <div class="box-body">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="table-responsive">
-                            <div id="toolbarTopSuppliers" class="btn-group" style="margin-bottom:8px"></div>
-
-                            <table
-                                id="dashTopSuppliers"
-                                class="table table-striped snipe-table"
-                                data-toggle="table"
-                                data-toolbar="#toolbarTopSuppliers"
-                                data-fixed-table-toolbar="true"
-                                data-cookie-id-table="dashTopSuppliers"
-                                data-height="320"
-                                data-search="true"
-                                data-show-columns="true"
-                                data-show-refresh="true"
-                                data-show-export="true"
-                                data-show-fullscreen="true"
-                                data-pagination="false"
-                            >
-                                <thead>
-                                    <tr>
-                                        <th data-field="supplier_name" class="col-sm-5">Supplier Name</th>
-                                        <th data-field="repairs" data-sortable="true" data-align="right" class="col-sm-2">Total Repair Count</th>
-                                        <th data-field="avg_duration" data-sortable="true" data-align="right" class="col-sm-2">Average Repair Duration (Days)</th>
-                                        <th data-field="avg_cost" data-sortable="true" data-align="right" class="col-sm-3">Average Repair Cost</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @if($topSuppliers->isEmpty())
-                                        <tr>
-                                            <td colspan="4" class="text-muted">No supplier repair data available.</td>
-                                        </tr>
-                                    @else
-                                        @foreach($topSuppliers as $ts)
-                                        <tr>
-                                            <td>{{ $ts['name'] }}</td>
-                                            <td class="text-right" style="font-weight:700">{{ number_format($ts['repairs']) }}</td>
-                                            <td class="text-right">{{ $ts['avg_duration'] !== null ? $ts['avg_duration'] : '—' }}</td>
-                                            <td class="text-right">{{ $ts['avg_cost'] !== null ? \App\Helpers\Helper::formatCurrencyOutput($ts['avg_cost']) : '—' }}</td>
-                                        </tr>
-                                        @endforeach
-                                    @endif
-                                </tbody>
-                            </table>
-
-                        </div><!-- /.table-responsive -->
-                    </div>
-                </div><!-- /.row -->
-            </div><!-- /.box-body -->
-        </div><!-- /.box -->
-    </div>
-    <div class="col-md-4">
-        @php
-            $reliability = null;
-            if (!empty($topSuppliers) && $topSuppliers->count() > 0) {
-                $first = $topSuppliers->first();
-                $reliability = \App\Services\SupplierReliabilityService::computeSupplierScore($first['id']);
-                $supplierName = $first['name'];
-            }
-        @endphp
-
-        <div class="box box-default">
-            <div class="box-header with-border">
-                <h2 class="box-title" style="font-weight:700">Supplier Reliability Score</h2>
-                <div class="box-tools pull-right">
-                    <button type="button" class="btn btn-box-tool" data-widget="collapse" aria-hidden="true">
-                        <x-icon type="minus" />
-                        <span class="sr-only">{{ trans('general.collapse') }}</span>
-                    </button>
-                </div>
-            </div>
-            <div class="box-body" style="display:flex; flex-direction:column; justify-content:center;">
-                @if(!$reliability)
-                    <div class="text-muted">No supplier reliability data available.</div>
-                @else
-                    <div style="margin-bottom:8px; font-weight:600">{{ $supplierName }}</div>
-                    <div style="margin-bottom:6px">Numeric Score</div>
-                    <div class="progress" style="height:28px; margin-bottom:12px">
-                        <div class="progress-bar bg-{{ $reliability['color'] }}" role="progressbar" aria-valuenow="{{ $reliability['score'] }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ $reliability['score'] }}%; font-weight:700;">{{ $reliability['score'] }}</div>
-                    </div>
-
-                    <div style="margin-bottom:6px">Rating</div>
-                    <div style="height:36px; display:flex; align-items:center; justify-content:center; border-radius:4px;" class="bg-{{ $reliability['color'] }} text-white">
-                        <div style="font-weight:700">{{ $reliability['rating'] }}</div>
-                    </div>
-                @endif
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Top Supplier and Supplier Reliability cards removed -->
 
 @php
     // Predicted replacement table: compute simple RUL (remaining useful life)
@@ -477,7 +365,7 @@
                             data-toggle="table"
                             data-fixed-table-toolbar="true"
                             data-cookie-id-table="dashPredictedReplacements"
-                            data-height="300"
+                            data-height="500"
                             data-pagination="false"
                         >
                             <thead>
@@ -515,6 +403,110 @@
                         </table>
                     @endif
                 </div>
+            </div>
+                        <div class="box-footer text-center" style="background:transparent;border-top:0;padding-top:8px;">
+                <a href="{{ route('hardware.index') }}" class="btn btn-primary btn-sm" style="width:100%">{{ trans('general.viewall') }}</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="box box-default" style="background:#fff;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.08);">
+            <div class="box-header with-border">
+                <h2 class="box-title" style="font-weight:700">Recommended Assets for Replacement</h2>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse" aria-hidden="true">
+                        <x-icon type="minus" />
+                        <span class="sr-only">{{ trans('general.collapse') }}</span>
+                    </button>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-box-tool dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                            <x-icon type="more-vert" />
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                            <li><a href="#">{{ trans('general.export') }}</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="box-body" style="padding:8px;">
+                @php
+                    // Build recommended list from $predicted and compute age from purchase_date
+                    $recommended = $predicted->map(function($p){
+                        $asset = \App\Models\Asset::find($p['id']);
+                        $ageYears = null;
+                        if ($asset && $asset->purchase_date) {
+                            try {
+                                $ageYears = round(\Carbon\Carbon::parse($asset->purchase_date)->diffInDays(\Carbon\Carbon::now())/365, 1);
+                            } catch (\Exception $e) {
+                                $ageYears = null;
+                            }
+                        }
+
+                        $avgRepairCost = (float) (\App\Models\Maintenance::where('asset_id', $p['id'])->avg('cost') ?? 0);
+
+                        // Determine reason (High Failure, Age, Cost of Repair)
+                        if ($p['recent_failure']) {
+                            $reason = 'High Failure';
+                        } elseif ($ageYears !== null && $ageYears >= 5) {
+                            $reason = 'Age';
+                        } elseif ($avgRepairCost > 500) {
+                            $reason = 'Cost of Repair';
+                        } else {
+                            $reason = 'Age';
+                        }
+
+                        // Priority based on remaining years and recent failures
+                        if ($p['remaining_years'] <= 0 || $p['recent_failure']) {
+                            $priority = 'High';
+                        } elseif ($p['remaining_years'] <= 2) {
+                            $priority = 'Medium';
+                        } else {
+                            $priority = 'Low';
+                        }
+
+                        $estCost = $asset && $asset->purchase_cost ? \App\Helpers\Helper::formatCurrencyOutput($asset->purchase_cost) : trans('general.unknown');
+
+                        return array_merge($p, [
+                            'reason' => $reason,
+                            'priority' => $priority,
+                            'estCost' => $estCost,
+                            'age_years_calc' => $ageYears,
+                        ]);
+                    })->values()->take(12);
+                @endphp
+
+                <div style="max-height:500px; overflow-y:auto;">
+                    <ul class="list-group" style="margin-bottom:0;">
+                        @forelse($recommended as $r)
+                            <li class="list-group-item" style="display:flex;align-items:center;justify-content:space-between;padding:12px 10px; @if($r['priority'] == 'High') border-left:4px solid #d9534f; box-shadow: inset 0 0 0 1px rgba(217,83,79,0.04); @else border-left:4px solid transparent; @endif">
+                                <div style="flex:1;min-width:0;padding-right:10px;">
+                                    <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;">{{ $r['name'] }}</div>
+                                    <div style="display:flex;gap:12px;margin-top:6px;font-size:12px;color:#6b7280;align-items:center;flex-wrap:wrap;">
+                                        <div>Reason: <strong style="color:#374151;margin-left:6px;">{{ $r['reason'] }}</strong></div>
+                                        <div>Age: <strong style="color:#374151;margin-left:6px;">{{ $r['age_years_calc'] !== null ? $r['age_years_calc'].' yrs' : '—' }}</strong></div>
+                                    </div>
+                                </div>
+                                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:140px;">
+                                    <div>
+                                        @if($r['priority'] == 'High')
+                                            <span class="label label-danger" style="font-weight:700;padding:6px 10px;background:#d9534f;color:#fff;border-radius:12px;">High</span>
+                                        @elseif($r['priority'] == 'Medium')
+                                            <span class="label label-warning" style="font-weight:700;padding:6px 10px;background:#f0ad4e;color:#fff;border-radius:12px;">Medium</span>
+                                        @else
+                                            <span class="label label-default" style="font-weight:700;padding:6px 10px;background:#6c757d;color:#fff;border-radius:12px;">Low</span>
+                                        @endif
+                                    </div>
+                                    <div style="font-weight:700;color:#111">{{ $r['estCost'] }}</div>
+                                </div>
+                            </li>
+                        @empty
+                            <li class="list-group-item text-muted">No recommended assets at this time.</li>
+                        @endforelse
+                    </ul>
+                </div>
+            </div>
+            <div class="box-footer text-center" style="background:transparent;border-top:0;padding-top:8px;">
+                <a href="{{ route('hardware.index') }}" class="btn btn-primary btn-sm" style="width:100%">{{ trans('general.viewall') }}</a>
             </div>
         </div>
     </div>
@@ -571,7 +563,7 @@
                             data-toggle="table"
                             data-fixed-table-toolbar="true"
                             data-cookie-id-table="dashWarrantySoon"
-                            data-height="300"
+                            data-height="500"
                             data-search="true"
                             data-pagination="false"
                         >
@@ -606,6 +598,9 @@
                                 @endif
                             </tbody>
                         </table>
+                    </div>
+                    <div class="text-center col-md-12" style="padding-top: 10px;">
+                        <a href="{{ route('hardware.index') }}" class="btn btn-primary btn-sm" style="width: 100%">{{ trans('general.viewall') }}</a>
                     </div>
                 </div>
             </div>
