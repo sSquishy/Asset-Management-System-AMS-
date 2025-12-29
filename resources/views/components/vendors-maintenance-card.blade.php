@@ -3,18 +3,30 @@
     $items = isset($items) ? $items : (isset($vendors) ? $vendors : collect());
 @endphp
 
-<div id="{{ $chartId }}-root" class="vendors-maintenance-card" style="background:#fff;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.06);padding:12px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <h3 class="font-bold text-lg" style="margin:0;font-weight:700;">Vendors with Most Maintenance or Costs</h3>
-        <div style="display:flex;align-items:center;gap:8px;">
-            <button aria-label="more" title="more" class="text-gray-500 hover:text-gray-700" style="background:transparent;border:0;padding:6px;color:#6b7280;">· · ·</button>
+<div class="box box-default" style="background:transparent;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.06);">
+    <div class="box-header with-border" style="background:#fff;">
+        <h3 class="box-title" style="font-weight:700;margin:0">Vendors with Most Maintenance or Costs</h3>
+        <div class="box-tools pull-right" style="display:flex;align-items:center;gap:8px;">
+            <button type="button" class="btn btn-box-tool" data-widget="collapse" aria-hidden="true">
+                <x-icon type="minus" />
+                <span class="sr-only">{{ trans('general.collapse') }}</span>
+            </button>
+            <div class="btn-group">
+                <button type="button" class="btn btn-box-tool dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    <x-icon type="more-vert" />
+                </button>
+                <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                    <li><a href="#">{{ trans('general.export') }}</a></li>
+                </ul>
+            </div>
         </div>
     </div>
 
-    <div class="chart-container" style="position:relative;width:100%;height:300px;">
-        <svg class="vendors-chart-svg" width="100%" height="100%" preserveAspectRatio="none"></svg>
-        <div class="vendors-chart-tooltip" style="position:absolute;display:none;pointer-events:none;background:rgba(17,17,17,0.95);color:#fff;padding:8px;border-radius:6px;font-size:12px;z-index:50;max-width:260px;"></div>
-    </div>
+    <div id="{{ $chartId }}-root" class="vendors-maintenance-card box-body" style="background:#fff;border-radius:0;padding:12px;">
+        <div class="chart-container" style="position:relative;width:100%;height:300px;">
+            <svg class="vendors-chart-svg" width="100%" height="100%" preserveAspectRatio="none"></svg>
+            <div class="vendors-chart-tooltip" style="position:absolute;display:none;pointer-events:none;background:rgba(17,17,17,0.95);color:#fff;padding:8px;border-radius:6px;font-size:12px;z-index:50;max-width:260px;"></div>
+        </div>
 
     @if($items && count($items) > 0)
         <div class="vendors-summary" style="margin-top:10px;font-size:13px;">

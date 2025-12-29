@@ -422,9 +422,6 @@
                         <button type="button" class="btn btn-box-tool dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
                             <x-icon type="more-vert" />
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-right" role="menu">
-                            <li><a href="#">{{ trans('general.export') }}</a></li>
-                        </ul>
                     </div>
                 </div>
             </div>
@@ -703,11 +700,11 @@
 @else
 
 <!-- recent activity -->
-<div class="row">
+<div class="row" style="padding-left:12px;padding-right:12px;">
   <div class="col-md-8">
     <div class="box">
-      <div class="box-header with-border">
-        <h2 class="box-title">{{ trans('general.recent_activity') }}</h2>
+      <div class="box-header with-border bg-white">
+        <h2 class="box-title" style="font-weight:700">{{ trans('general.recent_activity') }}</h2>
         <div class="box-tools pull-right">
             <button type="button" class="btn btn-box-tool" data-widget="collapse" aria-hidden="true">
                 <x-icon type="minus" />
@@ -757,7 +754,7 @@
   <div class="col-md-4">
         <div class="box box-default">
             <div class="box-header with-border">
-                <h2 class="box-title">
+                <h2 class="box-title" style="font-weight:700">
                     {{ (\App\Models\Setting::getSettings()->dash_chart_type == 'name') ? trans('general.assets_by_status') : trans('general.assets_by_status_type') }}
                 </h2>
                 <div class="box-tools pull-right">
@@ -781,14 +778,14 @@
   </div>
 
 </div> <!--/row-->
-<div class="row">
+<div class="row" style="padding-left:12px;padding-right:12px;">
     <div class="col-md-6">
 
 		@if ((($snipeSettings->scope_locations_fmcs!='1') && ($snipeSettings->full_multiple_companies_support=='1')))
 			 <!-- Companies -->	
 			<div class="box box-default">
 				<div class="box-header with-border">
-					<h2 class="box-title">{{ trans('general.companies') }}</h2>
+                    <h2 class="box-title" style="font-weight:700">{{ trans('general.companies') }}</h2>
 					<div class="box-tools pull-right">
 						<button type="button" class="btn btn-box-tool" data-widget="collapse">
                             <x-icon type="minus" />
@@ -918,7 +915,7 @@
         <!-- Categories -->
         <div class="box box-default">
             <div class="box-header with-border">
-                <h2 class="box-title">{{ trans('general.asset') }} {{ trans('general.categories') }}</h2>
+                <h2 class="box-title" style="font-weight:700">{{ trans('general.asset') }} {{ trans('general.categories') }}</h2>
                 <div class="box-tools pull-right">
                     <button type="button" class="btn btn-box-tool" data-widget="collapse">
                         <x-icon type="minus" />
