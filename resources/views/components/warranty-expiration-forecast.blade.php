@@ -58,9 +58,13 @@ $id = 'warranty_'.substr(md5($title),0,8);
         var tooltip = root.querySelector('.warranty-tooltip');
 
         function render(){
-            var rect = svg.getBoundingClientRect();
+            // measure the card container to keep chart constrained to the card
+            var rect = root.getBoundingClientRect();
             var w = Math.max(120, rect.width || 300);
-            var h = Math.max(60, rect.height || 120);
+            var h = Math.max(60, (rect.height - 64) || 120); // reserve space for title/footer
+
+            // update svg viewBox to map coordinates to current size
+            svg.setAttribute('viewBox', '0 0 '+Math.round(w)+' '+Math.round(h));
 
             // padding inside svg
             var padTop = 10, padBottom = 16;
@@ -109,14 +113,17 @@ $id = 'warranty_'.substr(md5($title),0,8);
                     var val = series[idx];
                     tooltip.style.display = 'block';
                     tooltip.innerHTML = '<strong style="display:block;margin-bottom:4px;">'+lbl+'</strong>' + String(val);
-                    // position tooltip relative to root
+                    // position tooltip relative to root, clamped inside the card
                     var rootRect = root.getBoundingClientRect();
-                    var left = ev.clientX - rootRect.left + 8;
-                    var top = ev.clientY - rootRect.top - 38;
-                    // clamp within root
+                    var svgRect = svg.getBoundingClientRect();
+                    // prefer positioning above the point
+                    var left = (svgRect.left - rootRect.left) + p.x + 8;
+                    var top = (svgRect.top - rootRect.top) + p.y - 40;
+                    // ensure tooltip fits horizontally
                     var tRectW = tooltip.offsetWidth || 120;
-                    if(left + tRectW > rootRect.width) left = rootRect.width - tRectW - 8;
-                    if(top < 4) top = 4;
+                    if(left + tRectW > rootRect.width - 8) left = rootRect.width - tRectW - 8;
+                    if(left < 8) left = 8;
+                    if(top < 8) top = (svgRect.top - rootRect.top) + p.y + 12; // place below if not enough space
                     tooltip.style.left = left+'px';
                     tooltip.style.top = top+'px';
                 });

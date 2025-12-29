@@ -605,6 +605,38 @@
                 </div>
             </div>
         </div>
+        @php
+            // Vendors maintenance aggregation: top vendors by total cost (or jobs)
+            $vendorRows = \App\Models\Maintenance::select('supplier_id', \DB::raw('count(*) as jobs'), \DB::raw('coalesce(sum(cost),0) as total_cost'), \DB::raw('avg(case when completion_date is not null and start_date is not null then datediff(completion_date,start_date) end) as avg_duration'))
+                ->whereNotNull('supplier_id')
+                ->groupBy('supplier_id')
+                ->get();
+
+            $vendorIds = $vendorRows->pluck('supplier_id')->unique()->filter()->values()->all();
+            $vendorsMap = \App\Models\Supplier::whereIn('id', $vendorIds)->get()->keyBy('id');
+
+            $vendorItems = collect();
+            foreach ($vendorRows as $vr) {
+                $s = $vendorsMap->get($vr->supplier_id);
+                if (! $s) continue;
+                $vendorItems->push([
+                    'id' => $vr->supplier_id,
+                    'name' => $s->name ?: ('Supplier #'.$vr->supplier_id),
+                    'jobs' => (int) $vr->jobs,
+                    'total_cost' => (float) $vr->total_cost,
+                    'total_cost_formatted' => \App\Helpers\Helper::formatCurrencyOutput($vr->total_cost),
+                    'avg_duration' => $vr->avg_duration !== null ? round($vr->avg_duration, 1) : null,
+                ]);
+            }
+            $vendorItems = $vendorItems->sortByDesc('total_cost')->values()->take(8);
+        @endphp
+
+        @if($vendorItems->isNotEmpty())
+            <div class="col-md-4">
+                @include('components.vendors-maintenance-card', ['items' => $vendorItems])
+            </div>
+        @endif
+    
     </div>
 
     @if ($counts['grand_total'] == 0)
