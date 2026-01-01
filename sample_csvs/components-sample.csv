@@ -1,2 +1,51 @@
 Item Name,Purchase Date,Purchase Cost,Location,Company,Order Number,Serial number,Category,Quantity
-RTX 4080,2024-01-01,5000.00,Austin,Grokability,2790,123456789,GPU,10
+MacBook Pro M3,2024-01-15,2499.00,Austin,Grokability,2791,SN-882910,Laptop,5
+Dell UltraSharp 27,2024-01-18,450.00,New York,Grokability,2792,DELL-9921,Monitor,12
+Cisco C9200L Switch,2024-02-05,3200.00,Austin,Grokability,2793,CS-334120,Networking,2
+Logitech MX Master 3S,2024-02-10,99.00,Seattle,Grokability,2794,LOGI-1123,Peripheral,25
+iPad Pro 12.9,2024-02-12,1099.00,Austin,Grokability,2795,APPL-4456,Tablet,8
+ThinkPad X1 Carbon,2024-02-20,1850.00,Chicago,Grokability,2796,TPAD-7782,Laptop,10
+Ubiquiti UniFi AP,2024-02-25,179.00,Austin,Grokability,2797,UBIQ-0092,Networking,15
+Samsung 990 Pro 2TB,2024-03-01,180.00,Austin,Grokability,2798,SSD-55612,Storage,20
+Keychron Q6 Keyboard,2024-03-05,160.00,Seattle,Grokability,2799,KCHR-8812,Peripheral,15
+Herman Miller Aeron,2024-03-12,1400.00,Austin,Grokability,2800,FURN-9901,Furniture,20
+Sony WH-1000XM5,2024-03-15,350.00,New York,Grokability,2801,SONY-2231,Audio,10
+HP LaserJet Pro,2024-03-20,499.00,Austin,Grokability,2802,HPLJ-4432,Printer,3
+LG C3 OLED 65",2024-03-22,1600.00,Chicago,Grokability,2803,LGTV-5512,Display,2
+Synology DS923+,2024-04-01,599.00,Austin,Grokability,2804,SYNO-7712,Storage,4
+Blue Yeti Mic,2024-04-05,129.00,Seattle,Grokability,2805,YETI-3321,Audio,6
+Dell Precision 7680,2024-04-10,3500.00,Austin,Grokability,2806,DELL-1144,Workstation,3
+Starlink Kit,2024-04-15,599.00,Remote,Grokability,2807,STAR-8821,Networking,5
+APC Smart-UPS 1500,2024-04-20,650.00,Austin,Grokability,2808,APCU-9920,Power,4
+Elgato Stream Deck,2024-04-25,149.00,Seattle,Grokability,2809,ELGA-1120,Peripheral,8
+Microsoft Surface Pro 9,2024-05-02,1200.00,New York,Grokability,2810,MSFT-4451,Tablet,7
+Fortigate 60F,2024-05-05,850.00,Austin,Grokability,2811,FORT-7732,Security,2
+Epson EcoTank,2024-05-10,320.00,Chicago,Grokability,2812,EPSO-9911,Printer,5
+Crucial RAM 64GB Kit,2024-05-15,210.00,Austin,Grokability,2813,RAM-2210,Components,12
+BenQ PD3220U,2024-05-20,1100.00,Seattle,Grokability,2814,BENQ-4455,Monitor,4
+Secretlab Titan Evo,2024-05-25,550.00,Austin,Grokability,2815,SECR-8871,Furniture,12
+Apple Studio Display,2024-06-01,1599.00,Austin,Grokability,2816,APPL-1100,Monitor,5
+QNAP TS-464,2024-06-05,520.00,Chicago,Grokability,2817,QNAP-9923,Storage,2
+iPhone 15 Pro,2024-06-10,999.00,New York,Grokability,2818,APPL-5561,Mobile,15
+Yubikey 5C NFC,2024-06-15,55.00,Austin,Grokability,2819,YUBI-1120,Security,50
+Bose QuietComfort,2024-06-20,299.00,Seattle,Grokability,2820,BOSE-4412,Audio,12
+ASUS ROG Zephyrus,2024-06-25,2100.00,Austin,Grokability,2821,ASUS-8890,Laptop,4
+Netgear Orbi Pro,2024-07-02,799.00,Chicago,Grokability,2822,NETG-1132,Networking,3
+Western Digital 12TB,2024-07-05,250.00,Austin,Grokability,2823,WDHD-4451,Storage,10
+Steelcase Gesture,2024-07-10,1300.00,New York,Grokability,2824,STLC-9912,Furniture,8
+Jabra Evolve2 65,2024-07-15,220.00,Seattle,Grokability,2825,JABR-3321,Audio,20
+Tesla Wall Connector,2024-07-20,450.00,Austin,Grokability,2826,TESL-8811,Power,2
+Poly Studio P15,2024-07-25,300.00,Chicago,Grokability,2827,POLY-4456,Video,10
+Framework Laptop 16,2024-08-01,1900.00,Austin,Grokability,2828,FRWK-1122,Laptop,6
+Razer Huntsman V3,2024-08-05,249.00,Seattle,Grokability,2829,RAZR-5541,Peripheral,10
+Nvidia RTX 4090,2024-08-10,1699.00,Austin,Grokability,2830,NVDA-9900,GPU,5
+Google Pixel 8 Pro,2024-08-15,999.00,New York,Grokability,2831,GOOG-2211,Mobile,8
+Sonos Era 100,2024-08-20,249.00,Austin,Grokability,2832,SONO-3345,Audio,6
+Varidesk Pro Plus 36,2024-08-25,425.00,Chicago,Grokability,2833,VARI-8812,Furniture,15
+MikroTik RB5009,2024-09-01,220.00,Austin,Grokability,2834,MIKR-1100,Networking,5
+Garmin Epix Pro,2024-09-05,899.00,Seattle,Grokability,2835,GARM-5567,Wearable,4
+Lacie Rugged 5TB,2024-09-10,170.00,Austin,Grokability,2836,LACI-9921,Storage,12
+Brother HL-L2350DW,2024-09-15,150.00,Chicago,Grokability,2837,BROT-4431,Printer,8
+Wacom Intuos Pro,2024-09-20,350.00,New York,Grokability,2838,WACO-1129,Peripheral,5
+Anker 737 Power Bank,2024-09-25,140.00,Austin,Grokability,2839,ANKR-8832,Power,15
+ZSA Voyager Keyboard,2024-10-01,365.00,Seattle,Grokability,2840,ZSAK-9912,Peripheral,3

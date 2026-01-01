@@ -1,4 +1,31 @@
 Company,Name,Category,Supplier,Manufacturer,QTY,Location,Order Number,Min Amount,Model Number,Item Number,Notes,Purchase Date,Purchase Cost
-Simonis and Sons,Dragline,Soft Flooring and Base,Towne Group Two,McLaughlin-Wisozk,50,Cherven Bryag,529027385-9,100,3533069599460644,6381392801995066,tortor sollicitudin mi sit amet lobortis sapien sapien non mi integer ac neque duis bibendum morbi non quam nec,11/5/22,35.2
-Bruen-Hagenes,Trencher,Sitework & Site Utilities,Hoeger and Sons,"Davis, Koelpin and Lockman",54,Pampas,009135228-2,92,5602248408566255894,3563525570373877,fusce lacus purus aliquet at feugiat non pretium quis lectus suspendisse potenti in eleifend quam a odio in hac habitasse,9/17/22,53.1
-Tremblay Inc,Crawler,Drywall & Acoustical (FED),"Cormier, Ryan and Cummerata","Morar, Stracke and Gusikowski",97,Penteado,492530513-1,20,56022484085662558554,3555797000872238,massa tempor convallis nulla neque libero convallis eget eleifend luctus ultricies eu,2/5/23,25.08
+Simonis and Sons,Thermal Paper Rolls,Office Supplies,Staples Corp,PaperTech,500,Austin,529027385-9,100,TP-9920,6381392801,Bulk pack for POS systems,11/5/22,35.2
+Bruen-Hagenes,CAT6 Connectors,Networking,Global Net,"Davis, Koelpin and Lockman",1000,Pampas,009135228-2,200,RJ45-C6,3563525570,Shielded connectors for infrastructure,9/17/22,53.1
+Tremblay Inc,AA Batteries,Electronics,PowerDirect,"Morar, Stracke and Gusikowski",144,Penteado,492530513-1,24,BATT-AA,3555797000,High capacity for wireless mice/keyboards,2/5/23,25.08
+TechLogistics,Label Tape 12mm,Labeling,Uline,Brother,80,Warehouse A,11223344-5,20,TZE-231,9988776655,Laminated white tape for asset tags,3/12/23,15.40
+Grokability,Cleaning Wipes,Maintenance,Janitorial Pro,Clorox,200,Austin,44556677-0,50,CW-500,1122334455,Alcohol-free surface wipes,6/18/23,12.99
+DataStream,USB-C Cables 6ft,Cables,CableMatters,Anker,60,Seattle,99881122-1,15,USB-C-06,7788990011,Braided cables for workstation docks,8/22/23,18.50
+Infraserve,Soldering Solder,Repair,CircuitSupply,Kester,12,Lab 1,77665544-2,3,LD-6040,5544332211,60/40 Rosin core for PCB repair,1/15/24,22.00
+CloudBase,Thermal Paste,Components,MicroCenter,Arctic,40,New York,33445566-8,10,MX-4,9900112233,For server CPU maintenance,12/01/23,8.50
+SecureNet,YubiKey Stickers,Security,Yubico,Yubico,300,Austin,88776655-4,50,STK-SEC,4455667788,Tamper-evident security seals,5/10/23,5.20
+GreenSpace,Recycled Paper A4,Office Supplies,EcoOffice,PaperOne,100,Chicago,22334455-6,20,REC-A4,6677889900,100% post-consumer waste,11/11/23,45.00
+Simonis and Sons,Velcro Cable Ties,Organization,Amazon Biz,Velcro,1000,Austin,529027386-0,200,VCT-50,6381392802,Reusable ties for server racks,1/12/24,19.99
+Bruen-Hagenes,Air Duster Can,Maintenance,Industrial Supply,Dust-Off,48,Pampas,009135229-3,12,AD-12OZ,3563525571,Compressed air for keyboard cleaning,2/20/24,7.25
+Tremblay Inc,CR2032 Batteries,Electronics,PowerDirect,Panasonic,100,Penteado,492530514-2,20,CR2032,3555797001,CMOS batteries for motherboard repairs,3/05/24,1.50
+TechLogistics,Patch Cables 1ft,Networking,Monoprice,Monoprice,200,Warehouse A,11223345-6,50,PC-C6-1,9988776656,Blue snagless slimrun cables,4/15/24,2.10
+Grokability,Coffee Pods,Breakroom,Keurig,Starbucks,500,Austin,44556678-1,100,CP-SB,1122334456,Pike Place Roast for office kitchen,5/12/24,0.65
+DataStream,Ink Cartridge Black,Printing,HP Direct,HP,24,Seattle,99881123-2,5,HP-63XL,7788990012,High yield black ink,6/01/24,42.00
+Infraserve,Heat Shrink Tubing,Cabling,WirePro,3M,150,Lab 1,77665545-3,30,HS-VAR,5544332212,Assorted sizes for wire insulation,7/10/24,14.00
+CloudBase,Microfiber Cloths,Maintenance,CleanCo,Zwipes,100,New York,33445567-9,25,MFC-12,9900112234,Anti-static for screen cleaning,8/05/24,1.20
+SecureNet,ID Card Blanks,Security,HID Global,HID,500,Austin,88776656-5,100,PVC-101,4455667789,White PVC cards for badge printing,9/12/24,0.45
+GreenSpace,LED Bulbs 60W,Facilities,HomeDepot,Philips,60,Chicago,22334456-7,10,LED-A19,6677889901,Soft white energy saving,10/18/24,4.50
+Simonis and Sons,Dry Erase Markers,Office Supplies,Staples Corp,Expo,144,Austin,529027387-1,24,EXPO-4,6381392803,Chisel tip assorted colors,11/01/24,1.10
+Bruen-Hagenes,Nitrile Gloves,Safety,MedSupply,Kimberly-Clark,1000,Pampas,009135230-4,200,NG-LRG,3563525572,Powder-free large size,12/05/24,12.00
+Tremblay Inc,Electrical Tape,Maintenance,Industrial Supply,3M Super 33,50,Penteado,492530515-3,10,ET-BLK,3555797002,Black vinyl insulation tape,1/10/25,4.99
+TechLogistics,Bubble Wrap Roll,Shipping,Uline,Sealed Air,20,Warehouse A,11223346-7,5,BW-12,9988776657,Small bubble 12 inch width,2/14/25,38.00
+Grokability,Hand Sanitizer,Health,Janitorial Pro,Purell,48,Austin,44556679-2,8,HS-12OZ,1122334457,Pump bottles for common areas,3/22/25,5.50
+DataStream,DisplayPort Cables,Cables,StarTech,StarTech,40,Seattle,99881124-3,10,DP-6FT,7788990013,4K 60Hz rated cables,4/05/25,12.99
+Infraserve,Desiccant Packs,Storage,DryPack,SilicaGe,1000,Lab 1,77665546-4,200,SIL-5G,5544332213,5 gram moisture absorbers,5/18/25,0.15
+CloudBase,Zip Ties 8 inch,Organization,Amazon Biz,CableMatters,2000,New York,33445568-0,500,ZT-8W,9900112235,Heavy duty nylon white,6/20/25,0.08
+SecureNet,RFID Key Fobs,Security,SecurityKey,Generic,200,Austin,88776657-6,50,RFID-125,4455667790,125kHz proximity fobs,7/15/25,2.50
+GreenSpace,Trash Liners 13gal,Facilities,EcoOffice,Glad,500,Chicago,22334457-8,100,TL-13G,6677889902,Drawstring tall kitchen bags,8/30/25,0.22

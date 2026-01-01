@@ -1,11 +1,51 @@
 name,address,address2,city,state,country,zip,notes,phone,fax,currency
-Shizi,811 Algoma Center,1690,Shimen,,CN,,ipsum ac tellus semper interdum mauris ullamcorper purus sit amet nulla quisque arcu libero rutrum ac lobortis vel dapibus,280-997-3795,673-737-7438,CNY
-Takum,354 Sugar Way,88222,Old Shinyanga,,NG,,proin risus praesent lectus vestibulum quam sapien varius ut blandit non interdum in ante vestibulum ante,810-325-0609,746-868-1843,NGN
-Unaizah,56243 Lawn Drive,14,Irecê,,SA,,in blandit ultrices enim lorem ipsum dolor sit amet consectetuer adipiscing elit proin interdum mauris,841-568-9664,419-246-9966,SAR
-Pontarlier,80411 Lyons Alley,0,Colinas,Franche-Comté,FR,25304 CEDEX,enim in tempor turpis nec euismod scelerisque quam turpis adipiscing lorem vitae,927-638-2175,683-361-5521,EUR
-Inongo,377 Nancy Lane,236,Placencia,,CD,,nam dui proin leo odio porttitor id consequat in consequat ut nulla sed accumsan felis ut at dolor quis,278-277-8326,744-879-3383,CDF
-San Diego,294 Spohn Center,04,Yanmen,,CO,202038,quis orci eget orci vehicula condimentum curabitur in libero ut,255-785-7948,874-491-7898,COP
-Lewotola,22308 Oriole Way,505,Celso Ramos,,ID,,nam nulla integer pede justo lacinia eget tincidunt eget tempus vel pede morbi porttitor lorem id ligula suspendisse ornare,431-503-0615,960-849-7404,IDR
-Pieńsk,7 Maryland Junction,77656,Cela,,PL,59-930,ut blandit non interdum in ante vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae,723-739-7799,431-889-4342,PLN
-Mataguži,5 Mayfield Drive,0,Zhaogezhuang,,ME,,nulla neque libero convallis eget eleifend luctus ultricies eu nibh quisque id justo sit amet sapien dignissim vestibulum vestibulum,356-728-4662,689-866-7531,EUR
-Xixiang,2540 Rockefeller Place,2,Alegria,,CN,,vivamus metus arcu adipiscing molestie hendrerit at vulputate vitae nisl aenean lectus,388-760-0441,110-938-9032,CNY
+Hanoi Hub,88 Ly Thai To,Floor 4,Hanoi,,VN,100000,Primary regional office for SE Asia operations with onsite server room,84-24-3936,84-24-3937,VND
+Berlin Tech,72 Friedrichstraße,Suite 200,Berlin,Berlin,DE,10117,European headquarters located near Checkpoint Charlie,49-30-2096,49-30-2097,EUR
+Tokyo Central,1-5-1 Marunouchi,Chiyoda-ku,Tokyo,Tokyo,JP,100-6590,High-security facility requires biometric access for asset removal,81-3-3210,81-3-3211,JPY
+Sydney Wharf,200 George Street,Level 15,Sydney,NSW,AU,2000,Regional distribution center for hardware replacements,61-2-9244,61-2-9245,AUD
+Toronto North,5000 Yonge St,Unit 12,Toronto,ON,CA,M2N 7E9,Main Canadian branch located in North York center,1-416-224,1-416-225,CAD
+Mumbai Data,Plot C-20 G Block,Bandra Kurla,Mumbai,MH,IN,400051,Tier 3 data center facility with 24/7 technical support staff,91-22-6650,91-22-6651,INR
+London Wall,100 Bishopsgate,Floor 22,London,Greater London,GB,EC2N 4AG,UK Finance and compliance office,44-20-7000,44-20-7001,GBP
+Sao Paulo South,Av. Paulista 1100,Sala 5,Sao Paulo,SP,BR,01310-100,Satellite office for South American sales team,55-11-3170,55-11-3171,BRL
+Dubai Creek,Al Maktoum Rd,PO Box 1234,Dubai,Dubai,AE,,Middle East logistics hub located near international airport,971-4-222,971-4-223,AED
+Cape Town East,100 St Georges Mall,Office 10,Cape Town,Western Cape,ZA,8001,Regional support center for African continent operations,27-21-481,27-21-482,ZAR
+Seoul Cyber,255-1 Sejong-no,Jongno-gu,Seoul,,KR,03154,R&D center for mobile hardware testing,82-2-730,82-2-731,KRW
+Madrid Plaza,Calle de Alcala 45,Piso 3,Madrid,Madrid,ES,28014,Logistics node for Southern Europe equipment repairs,34-91-521,34-91-522,EUR
+Mexico City West,Paseo de la Reforma,Floor 12,Mexico City,CDMX,MX,06600,High-volume inventory storage for LATAM region,52-55-5080,52-55-5081,MXN
+Singapore Point,10 Collyer Quay,Level 30,Singapore,,SG,049315,Asia-Pacific executive briefing center,65-6535,65-6536,SGD
+Amsterdam Port,Prins Hendrikkade 1,Suite 4,Amsterdam,NH,NL,1012 TM,Customs bonded warehouse for incoming hardware shipments,31-20-530,31-20-531,EUR
+Zurich Hill,Bahnhofstrasse 1,Floor 1,Zurich,ZH,CH,8001,Secure storage for high-value encryption assets,41-44-211,41-44-212,CHF
+Stockholm Nord,Klarabergsviadukten 63,Box 70,Stockholm,AB,SE,111 64,Scandinavian IT service desk and repair shop,46-8-506,46-8-507,SEK
+Bangkok Sky,989 Rama I Rd,Unit 2,Bangkok,Bangkok,TH,10330,Operations center for regional e-commerce infrastructure,66-2-658,66-2-659,THB
+Dublin Quay,70 Sir John Rogerson's Quay,Ground Floor,Dublin,Leinster,IE,D02 R296,Primary EMEA data residency and compliance center,353-1-475,353-1-476,EUR
+Istanbul Grand,Buyukdere Cad 185,Kanyon,Istanbul,,TR,34394,Regional sales and technical training facility,90-212-319,90-212-320,TRY
+Jakarta Plaza,Jl. M.H. Thamrin No.1,Level 5,Jakarta,DKI,ID,10310,Inventory management for local Indonesian subsidiaries,62-21-2358,62-21-2359,IDR
+Vienna Ring,Schubertring 10,Suite 2,Vienna,Vienna,AT,1010,Central European logistics and distribution node,43-1-512,43-1-513,EUR
+Oslo Fjord,Dronning Eufemias gate 16,Level 8,Oslo,,NO,0191,Offshore asset tracking and maritime tech support,47-22-01,47-22-02,NOK
+Milan Duomo,Via Dante 7,Piso 2,Milan,MI,IT,20121,Fashion and retail technology support hub,39-02-72,39-02-73,EUR
+Brussels Square,Rue Royale 10,Office 5,Brussels,Brussels,BE,1000,Liaison office for European Union regulatory compliance,32-2-501,32-2-502,EUR
+Warsaw Spire,Plac Europejski 1,Floor 35,Warsaw,MZ,PL,00-844,Software development and QA testing lab,48-22-307,48-22-308,PLN
+Lisbon Coast,Avenida da Liberdade 110,Floor 4,Lisbon,,PT,1250-146,Western European shipping and receiving center,351-21-340,351-21-341,EUR
+Athens Port,Leof. Syngrou 10,Suite 1,Athens,,GR,117 42,Support office for Mediterranean shipping logistics,30-210-92,30-210-93,EUR
+Tel Aviv Tech,Rothschild Blvd 22,Floor 10,Tel Aviv,,IL,6688218,Cybersecurity asset management and threat center,972-3-510,972-3-511,ILS
+Manila Bay,Ayala Ave,Tower 1,Makati,Metro Manila,PH,1226,BPO and global service desk operations center,63-2-8888,63-2-8889,PHP
+Auckland Sky,88 Federal Street,Suite 12,Auckland,,NZ,1010,Oceania cloud infrastructure monitoring station,64-9-363,64-9-364,NZD
+Cairo Nile,12 Nile St,Garden City,Cairo,,EG,11511,North African regional inventory hub,20-2-279,20-2-280,EGP
+Johannesburg CBD,11 Diagonal St,Level 4,Johannesburg,GP,ZA,2001,Mining technology and field equipment depot,27-11-83,27-11-84,ZAR
+Kuala Lumpur Twin,Petronas Tower 2,Level 45,Kuala Lumpur,,MY,50088,Oil and gas asset management division,60-3-2331,60-3-2332,MYR
+Prague Castle,Na Příkopě 12,Unit A,Prague,,CZ,110 00,Eastern European hardware refurbishment center,420-224,420-225,CZK
+Budapest Bridge,Váci út 1,Floor 2,Budapest,,HU,1062,Regional data backup and recovery site,36-1-238,36-1-239,HUF
+Copenhagen Canal,Kongens Nytorv 1,Suite 10,Copenhagen,,DK,1050,Sustainable technology and green energy lab,45-33-11,45-33-12,DKK
+Helsinki Harbor,Eteläranta 10,Floor 5,Helsinki,,FI,00130,Mobile network infrastructure depot,358-9-61,358-9-62,EUR
+Bangalore Silicon,Electronic City Phase 1,Plot 42,Bangalore,KA,IN,560100,Global software engineering and hardware lab,91-80-41,91-80-42,INR
+Taipei Tower,No. 7 Xinyi Rd,Section 5,Taipei,,TW,110,Semiconductor asset and logistics management,886-2-81,886-2-82,TWD
+Santiago Andes,Av. Providencia 1200,Oficina 4,Santiago,RM,CL,7500000,Mining and geological asset storage,56-2-23,56-2-24,CLP
+Bogota Peak,Carrera 7 No. 71-21,Torre B,Bogota,,CO,110221,Northern South America distribution node,57-601-3,57-601-4,COP
+Lima Center,Av. Javier Prado Este,Piso 15,Lima,LIMA,PE,15047,Logistics hub for Andean regional operations,51-1-61,51-1-62,PEN
+Riyadh Desert,King Fahd Rd,Al Olaya,Riyadh,,SA,12212,Government contracts and secure asset depot,966-11-4,966-11-5,SAR
+Casablanca Port,Boulevard Al Massira,No 40,Casablanca,,MA,20000,Maghreb region tech support and logistics,212-522,212-523,MAD
+Nairobi Tech,Waiyaki Way,Delta Corner,Nairobi,,KE,,East African innovation and mobile money lab,254-20-4,254-20-5,KES
+Lagos Island,Adetokunbo Ademola,Tower 2,Lagos,Lagos,NG,,West African enterprise server storage facility,234-1-27,234-1-28,NGN
+Ho Chi Minh City,Dong Khoi St,Level 10,Ho Chi Minh City,,VN,700000,Regional manufacturing oversight and QC lab,84-28-38,84-28-39,VND
+Perth West,St Georges Terrace,Level 2,Perth,WA,AU,6000,Remote mining site telemetry support center,61-8-94,61-8-95,AUD
+Geneva Lake,Quai du Mont-Blanc,Suite 3,Geneva,GE,CH,1201,International regulatory and standard hardware lab,41-22-7,41-22-8,CHF
