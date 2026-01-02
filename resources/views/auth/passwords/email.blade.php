@@ -133,9 +133,12 @@
                     </div>
 
                     <div class="box-footer">
-                        <button type="submit" class="btn btn-primary btn-block btn-lg">
+                        <button type="submit" class="btn btn-primary btn-block" style="font-size:1.25rem;padding-top:0.75rem;padding-bottom:0.75rem;">
                             {{ trans('auth/general.email_reset_password') }}
                         </button>
+                        <div class="text-center mt-2">
+                            <a href="{{ url('/login') }}" class="btn btn-link" style="text-decoration:none;color:#337ab7;font-weight:500;">Back to Login</a>
+                        </div>
                     </div>
 
                 </div>
