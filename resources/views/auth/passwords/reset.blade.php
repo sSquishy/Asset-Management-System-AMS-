@@ -115,7 +115,7 @@
                             <!-- Password Requirements -->
                             <h6 class="text-body mt-3">Password Requirements:</h6>
                             <ul id="pwdRequirements" class="ps-3 mb-3">
-                                <li class="requirement-item" data-key="length">10–30 characters</li>
+                                <li class="requirement-item" data-key="length">At least 12 characters</li>
                                 <li class="requirement-item" data-key="uppercase">At least one uppercase letter</li>
                                 <li class="requirement-item" data-key="lowercase">At least one lowercase letter</li>
                                 <li class="requirement-item" data-key="digit">At least one digit</li>
@@ -142,7 +142,7 @@
 // Real-time password requirements checker
 function checkPasswordRequirements(password) {
     const requirements = {
-        length: password.length >= 10 && password.length <= 30,
+        length: password.length >= 12,
         uppercase: /[A-Z]/.test(password),
         lowercase: /[a-z]/.test(password),
         digit: /[0-9]/.test(password),
