@@ -37,6 +37,19 @@
         width: 100%;
         text-align: center;
     }
+    /* Add padding to form fields and labels */
+    .login-box-body {
+        padding-left: 40px;
+        padding-right: 40px;
+    }
+    .login-box-body label {
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+    .login-box-body .form-control {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
 </style>
 
 <div class="login-bg" aria-hidden="true" style="position:fixed;inset:0;z-index:800;background-image:url('{{ asset('custom/img/loginbg.jpg') }}');background-size:cover;background-position:center center;background-repeat:no-repeat;pointer-events:none;"></div>
