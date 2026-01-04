@@ -209,9 +209,11 @@
                 'subtitle' => 'Total Depreciation Amount',
             ],
         ];
-        // <!-- END: Asset Depreciation Overview -->
-        
-        // <!-- BEGIN: Warranty Expiration Forecast -->
+    @endphp
+    <!-- END: Asset Depreciation Overview -->
+
+    <!-- BEGIN: Warranty Expiration Forecast -->
+    @php
         // Top suppliers by repairs: compute repairs count, average duration (days) and average cost
         $tv_sort = request()->get('tv_sort', 'repairs');
         $tv_order = strtolower(request()->get('tv_order', 'desc')) === 'asc' ? 'asc' : 'desc';
