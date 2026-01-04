@@ -9,6 +9,10 @@
 {{-- Page content --}}
 @section('content')
 
+    @php
+        $assets = \App\Models\Asset::AssetsForShow()->get();
+    @endphp
+
     @if ($snipeSettings->dashboard_message != '')
         <div class="row">
             <div class="col-md-12">
@@ -147,159 +151,23 @@
 
     <!-- BEGIN: Dashboard KPI Row -->
     <div class="row" style="margin-bottom:10px;">
-
         <!-- BEGIN: Asset Depreciation Overview -->
         <div class="col-md-4" style="margin-bottom:12px;">
-            @php
-                $assets = \App\Models\Asset::AssetsForShow()->get();
-                $totalPurchase = $assets->sum('purchase_cost');
-                $currentTotal = 0;
-                foreach ($assets as $a) {
-                    $currentTotal += (float) ($a->getDepreciatedValue() ?? 0);
-                }
-                $depreciationAmount = $totalPurchase - $currentTotal;
-                $depreciationPercent = $totalPurchase > 0 ? round(($depreciationAmount / $totalPurchase) * 100, 2) : 0;
-
-                // Build a simple 6-month purchase-cost trend (grouped by purchase_date month)
-                $trend = [];
-                for ($i = 5; $i >= 0; $i--) {
-                    $start = \Carbon\Carbon::now()->subMonths($i)->startOfMonth();
-                    $end = \Carbon\Carbon::now()->subMonths($i)->endOfMonth();
-                    $sum = \App\Models\Asset::AssetsForShow()
-                        ->whereNotNull('purchase_date')
-                        ->whereBetween('purchase_date', [$start->toDateString(), $end->toDateString()])
-                        ->sum('purchase_cost');
-                    $trend[] = (float) $sum;
-                }
-
-                $metrics = [
-                    [
-                        'value' => \App\Helpers\Helper::formatCurrencyOutput($totalPurchase),
-                        'subtitle' => 'Total Purchase Cost',
-                        'trend' => $trend,
-                        'trendLabel' => '6-month purchases',
-                    ],
-                    [
-                        'value' => \App\Helpers\Helper::formatCurrencyOutput($currentTotal),
-                        'subtitle' => 'Current Total Value (after depreciation)',
-                    ],
-                    [
-                        'value' => \App\Helpers\Helper::formatCurrencyOutput($depreciationAmount),
-                        'subtitle' => 'Total Depreciation Amount',
-                    ],
-                ];
-            @endphp            
-            @include('components.asset-depreciation-card', ['metrics' => $metrics])
+            @include('zaanalytics.asset_depreciation_overview.column')
         </div>
         <!-- END: Asset Depreciation Overview -->
 
         <!-- BEGIN: Warranty Expiration Forecast -->
         <div class="col-md-4" style="margin-bottom:12px;">
-            @php
-                // Build a 6-month warranty expiration forecast (counts per upcoming month)
-                $warrantySeries = [];
-                $warrantyLabels = [];
-                for ($i = 0; $i < 6; $i++) {
-                    $start = \Carbon\Carbon::now()->addMonths($i)->startOfMonth();
-                    $end = \Carbon\Carbon::now()->addMonths($i)->endOfMonth();
-                    $warrantyLabels[] = $start->format('M Y');
-                    $count = $assets
-                        ->filter(function ($a) use ($start, $end) {
-                            if (!$a->purchase_date || !$a->warranty_months) {
-                                return false;
-                            }
-                            try {
-                                $expiry = \Carbon\Carbon::parse($a->purchase_date)->addMonths($a->warranty_months);
-                            } catch (\Exception $e) {
-                                return false;
-                            }
-                            return $expiry->between($start, $end);
-                        })
-                        ->count();
-                    $warrantySeries[] = (int) $count;
-                }
-
-                // Top suppliers by repairs: compute repairs count, average duration (days) and average cost
-                $tv_sort = request()->get('tv_sort', 'repairs');
-                $tv_order = strtolower(request()->get('tv_order', 'desc')) === 'asc' ? 'asc' : 'desc';
-                $supplierRows = \App\Models\Maintenance::select(
-                    'supplier_id',
-                    \DB::raw('count(*) as repairs'),
-                    \DB::raw(
-                        'avg(case when completion_date is not null then datediff(completion_date, start_date) end) as avg_duration',
-                    ),
-                    \DB::raw('avg(cost) as avg_cost'),
-                )
-                    ->whereNotNull('supplier_id')
-                    ->groupBy('supplier_id')
-                    ->get();
-
-                $supplierIds = $supplierRows->pluck('supplier_id')->unique()->filter()->values()->all();
-                $suppliers = \App\Models\Supplier::whereIn('id', $supplierIds)->get()->keyBy('id');
-
-                $topSuppliers = $supplierRows->map(function ($r) use ($suppliers) {
-                    $s = $suppliers->get($r->supplier_id);
-                    return [
-                        'id' => $r->supplier_id,
-                        'name' => $s ? $s->name : trans('general.unknown'),
-                        'repairs' => (int) $r->repairs,
-                        'avg_duration' => $r->avg_duration !== null ? round($r->avg_duration, 1) : null,
-                        'avg_cost' => $r->avg_cost !== null ? round($r->avg_cost, 2) : null,
-                    ];
-                });
-
-                // Apply request-driven sorting
-                if ($tv_sort == 'avg_duration') {
-                    $topSuppliers =
-                        $tv_order == 'asc' ? $topSuppliers->sortBy('avg_duration') : $topSuppliers->sortByDesc('avg_duration');
-                } elseif ($tv_sort == 'avg_cost') {
-                    $topSuppliers =
-                        $tv_order == 'asc' ? $topSuppliers->sortBy('avg_cost') : $topSuppliers->sortByDesc('avg_cost');
-                } else {
-                    $topSuppliers =
-                        $tv_order == 'asc' ? $topSuppliers->sortBy('repairs') : $topSuppliers->sortByDesc('repairs');
-                }
-
-                $topSuppliers = $topSuppliers->values();
-            @endphp
-            @include('components.warranty-expiration-forecast', [
-                'series' => $warrantySeries,
-                'labels' => $warrantyLabels,
-            ])
+            @include('zaanalytics.warranty_expiration_forecast.column')
         </div>
         <!-- END: Warranty Expiration Forecast -->
-        
+
         <!-- BEGIN: Assets with Most Failures -->
         <div class="col-md-4" style="margin-bottom:12px;">
-            @php
-                // Build failures summary: top assets by maintenance count
-                $failureRows = \App\Models\Maintenance::select(
-                    'asset_id',
-                    \DB::raw('count(*) as failures'),
-                    \DB::raw('max(start_date) as last_failure'),
-                )
-                    ->groupBy('asset_id')
-                    ->orderByDesc('failures')
-                    ->take(6)
-                    ->get();
-                $failureItems = [];
-                foreach ($failureRows as $fr) {
-                    $asset = \App\Models\Asset::with('model')->find($fr->asset_id);
-                    if (!$asset) {
-                        continue;
-                    }
-                    $failureItems[] = [
-                        'label' => $asset->name ?: $asset->asset_tag ?: 'Asset #' . $asset->id,
-                        'model' => $asset->model->name ?? ($asset->model_number ?? ''),
-                        'count' => (int) $fr->failures,
-                        'last' => $fr->last_failure ? \Carbon\Carbon::parse($fr->last_failure)->toDateString() : null,
-                    ];
-                }
-            @endphp
-            @include('components.assets-most-failures-card', ['items' => $failureItems])
+            @include('zaanalytics.assets_most_failures.column')
         </div>
         <!-- END: Assets with Most Failures -->
-
     </div>
     <!-- END: Dashboard KPI Row -->
 
@@ -528,7 +396,7 @@
                         <ul class="list-group" style="margin-bottom:0;">
                             @forelse($recommended as $r)
                                 <li class="list-group-item"
-                                    style="display:flex;align-items:center;justify-content:space-between;padding:12px 10px; @if ($r['priority'] == 'High') border-left:4px solid #d9534f; box-shadow: inset 0 0 0 1px rgba(217,83,79,0.04); @else border-left:4px solid transparent; @endif">
+                                    style="display:flex;align-items:center;justify-content:space-between;padding:12px 10px; @if ($r['priority'] == 'High') border-left:4px solid #d9534f; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08); @else border-left:4px solid transparent; @endif">
                                     <div style="flex:1;min-width:0;padding-right:10px;">
                                         <div
                                             style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;">
