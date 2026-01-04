@@ -147,6 +147,7 @@
     </div>
     </div>
 
+    <!-- BEGIN: Asset Depreciation Overview -->
     @php
         $assets = \App\Models\Asset::AssetsForShow()->get();
         $totalPurchase = $assets->sum('purchase_cost');
@@ -208,6 +209,9 @@
                 'subtitle' => 'Total Depreciation Amount',
             ],
         ];
+        // <!-- END: Asset Depreciation Overview -->
+        
+        // <!-- BEGIN: Warranty Expiration Forecast -->
         // Top suppliers by repairs: compute repairs count, average duration (days) and average cost
         $tv_sort = request()->get('tv_sort', 'repairs');
         $tv_order = strtolower(request()->get('tv_order', 'desc')) === 'asc' ? 'asc' : 'desc';
@@ -250,8 +254,11 @@
         }
 
         $topSuppliers = $topSuppliers->values();
+        
     @endphp
+    <!-- END: Warranty Expiration Forecast -->
 
+    <!-- BEGIN: Assets with Most Failures -->
     <div class="row" style="margin-bottom:10px;">
         <div class="col-md-4" style="margin-bottom:12px;">
             @include('components.asset-depreciation-card', ['metrics' => $metrics])
@@ -289,6 +296,7 @@
                 }
             @endphp
             @include('components.assets-most-failures-card', ['items' => $failureItems])
+        <!-- END: Assets with Most Failures -->
         </div>
         {{-- <div class="col-md-6">
         <!-- Optional: place for Depreciation % or details -->
@@ -302,9 +310,11 @@
         </div>
     </div> --}}
     </div>
+    <!-- END: Assets with Most Failures -->
 
     <!-- Top Supplier and Supplier Reliability cards removed -->
 
+    <!-- BEGIN: Assets Predicted For Replacement -->
     @php
         // Predicted replacement table: compute simple RUL (remaining useful life)
         $predicted = collect();
@@ -446,7 +456,9 @@
                         style="width:100%">{{ trans('general.viewall') }}</a>
                 </div>
             </div>
+        <!-- END: Assets Predicted For Replacement -->
         </div>
+        <!-- BEGIN: Recommended Assets for Replacement -->
         <div class="col-md-4">
             <div class="box box-default" style="background:#fff;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.08);">
                 <div class="box-header with-border">
@@ -570,8 +582,10 @@
                         style="width:100%">{{ trans('general.viewall') }}</a>
                 </div>
             </div>
+        <!-- END: Recommended Assets for Replacement -->
         </div>
     </div>
+    <!-- END: Recommended Assets for Replacement -->
 
     @php
         // Assets nearing warranty expiration (within next N days)
