@@ -227,104 +227,20 @@
         $warrantySoon = $warrantySoon->sortBy('days_remaining')->values();
     @endphp
 
+    <!-- BEGIN: Warranty Expiration & Vendors Row -->
     <div class="row" style="margin-top:10px;">
+        <!-- BEGIN: Asset Nearing Warranty Expiration -->
         <div class="col-md-8">
-            <div class="box box-default">
-                <div class="box-header with-border">
-                    <h2 class="box-title" style="font-weight:700">Asset Nearing Warranty Expiration</h2>
-                    <div class="box-tools pull-right">
-                        <button type="button" class="btn btn-box-tool" data-widget="collapse" aria-hidden="true">
-                            <x-icon type="minus" />
-                            <span class="sr-only">{{ trans('general.collapse') }}</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="box-body">
-                    <div class="table-responsive">
-                        <table id="dashWarrantySoon" class="table table-striped snipe-table" data-toggle="table"
-                            data-fixed-table-toolbar="true" data-cookie-id-table="dashWarrantySoon" data-height="500"
-                            data-search="true" data-pagination="false">
-                            <thead>
-                                <tr>
-                                    <th>Asset Tag</th>
-                                    <th>Asset Name</th>
-                                    <th>Category</th>
-                                    <th>Assigned To / Department</th>
-                                    <th>Warranty Date</th>
-                                    <th>Days Remaining</th>
-                                    <th>Supplier</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if ($warrantySoon->isEmpty())
-                                    <tr>
-                                        <td colspan="7" class="text-muted">No assets nearing warranty expiration.</td>
-                                    </tr>
-                                @else
-                                    @foreach ($warrantySoon as $w)
-                                        <tr>
-                                            <td>{{ $w['asset_tag'] }}</td>
-                                            <td>{{ $w['name'] }}</td>
-                                            <td>{{ $w['category'] }}</td>
-                                            <td>{{ $w['assigned'] ?: $w['department'] }}</td>
-                                            <td>{{ $w['warranty_date'] }}</td>
-                                            <td style="font-weight:700">{{ $w['days_remaining'] }}</td>
-                                            <td>{{ $w['supplier'] }}</td>
-                                        </tr>
-                                    @endforeach
-                                @endif
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="text-center col-md-12" style="padding-top: 10px;">
-                        <a href="{{ route('hardware.index') }}" class="btn btn-primary btn-sm"
-                            style="width: 100%">{{ trans('general.viewall') }}</a>
-                    </div>
-                </div>
-            </div>
+            @include('zaanalytics.asset_nearing_warranty_expiration.column')
         </div>
-        @php
-            // Vendors maintenance aggregation: top vendors by total cost (or jobs)
-            $vendorRows = \App\Models\Maintenance::select(
-                'supplier_id',
-                \DB::raw('count(*) as jobs'),
-                \DB::raw('coalesce(sum(cost),0) as total_cost'),
-                \DB::raw(
-                    'avg(case when completion_date is not null and start_date is not null then datediff(completion_date,start_date) end) as avg_duration',
-                ),
-            )
-                ->whereNotNull('supplier_id')
-                ->groupBy('supplier_id')
-                ->get();
-
-            $vendorIds = $vendorRows->pluck('supplier_id')->unique()->filter()->values()->all();
-            $vendorsMap = \App\Models\Supplier::whereIn('id', $vendorIds)->get()->keyBy('id');
-
-            $vendorItems = collect();
-            foreach ($vendorRows as $vr) {
-                $s = $vendorsMap->get($vr->supplier_id);
-                if (!$s) {
-                    continue;
-                }
-                $vendorItems->push([
-                    'id' => $vr->supplier_id,
-                    'name' => $s->name ?: 'Supplier #' . $vr->supplier_id,
-                    'jobs' => (int) $vr->jobs,
-                    'total_cost' => (float) $vr->total_cost,
-                    'total_cost_formatted' => \App\Helpers\Helper::formatCurrencyOutput($vr->total_cost),
-                    'avg_duration' => $vr->avg_duration !== null ? round($vr->avg_duration, 1) : null,
-                ]);
-            }
-            $vendorItems = $vendorItems->sortByDesc('total_cost')->values()->take(8);
-        @endphp
-
-        @if ($vendorItems->isNotEmpty())
-            <div class="col-md-4">
-                @include('components.vendors-maintenance-card', ['items' => $vendorItems])
-            </div>
-        @endif
-
+        <!-- END: Asset Nearing Warranty Expiration -->
+        <!-- BEGIN: Vendors with Most Maintenance or Costs -->
+        <div class="col-md-4">
+            @include('zaanalytics.vendors_most_maintenance.column')
+        </div>
+        <!-- END: Vendors with Most Maintenance or Costs -->
     </div>
+    <!-- END: Warranty Expiration & Vendors Row -->
 
     @if ($counts['grand_total'] == 0)
 
