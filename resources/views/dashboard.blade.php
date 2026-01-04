@@ -67,7 +67,6 @@
             </a>
         </div><!-- ./col -->
 
-
         <div class="col-lg-2 col-xs-6">
             <!-- small accessories box -->
             <a href="{{ route('accessories.index') }}">
@@ -145,132 +144,132 @@
         </div><!-- ./col -->
 
     </div>
-    </div>
 
-    <!-- BEGIN: Asset Depreciation Overview -->
-    @php
-        $assets = \App\Models\Asset::AssetsForShow()->get();
-        $totalPurchase = $assets->sum('purchase_cost');
-        $currentTotal = 0;
-        foreach ($assets as $a) {
-            $currentTotal += (float) ($a->getDepreciatedValue() ?? 0);
-        }
-        $depreciationAmount = $totalPurchase - $currentTotal;
-        $depreciationPercent = $totalPurchase > 0 ? round(($depreciationAmount / $totalPurchase) * 100, 2) : 0;
-
-        // Build a simple 6-month purchase-cost trend (grouped by purchase_date month)
-        $trend = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $start = \Carbon\Carbon::now()->subMonths($i)->startOfMonth();
-            $end = \Carbon\Carbon::now()->subMonths($i)->endOfMonth();
-            $sum = \App\Models\Asset::AssetsForShow()
-                ->whereNotNull('purchase_date')
-                ->whereBetween('purchase_date', [$start->toDateString(), $end->toDateString()])
-                ->sum('purchase_cost');
-            $trend[] = (float) $sum;
-        }
-
-        // Build a 6-month warranty expiration forecast (counts per upcoming month)
-        $warrantySeries = [];
-        $warrantyLabels = [];
-        for ($i = 0; $i < 6; $i++) {
-            $start = \Carbon\Carbon::now()->addMonths($i)->startOfMonth();
-            $end = \Carbon\Carbon::now()->addMonths($i)->endOfMonth();
-            $warrantyLabels[] = $start->format('M Y');
-            $count = $assets
-                ->filter(function ($a) use ($start, $end) {
-                    if (!$a->purchase_date || !$a->warranty_months) {
-                        return false;
-                    }
-                    try {
-                        $expiry = \Carbon\Carbon::parse($a->purchase_date)->addMonths($a->warranty_months);
-                    } catch (\Exception $e) {
-                        return false;
-                    }
-                    return $expiry->between($start, $end);
-                })
-                ->count();
-            $warrantySeries[] = (int) $count;
-        }
-
-        $metrics = [
-            [
-                'value' => \App\Helpers\Helper::formatCurrencyOutput($totalPurchase),
-                'subtitle' => 'Total Purchase Cost',
-                'trend' => $trend,
-                'trendLabel' => '6-month purchases',
-            ],
-            [
-                'value' => \App\Helpers\Helper::formatCurrencyOutput($currentTotal),
-                'subtitle' => 'Current Total Value (after depreciation)',
-            ],
-            [
-                'value' => \App\Helpers\Helper::formatCurrencyOutput($depreciationAmount),
-                'subtitle' => 'Total Depreciation Amount',
-            ],
-        ];
-    @endphp
-    <!-- END: Asset Depreciation Overview -->
-
-    <!-- BEGIN: Warranty Expiration Forecast -->
-    @php
-        // Top suppliers by repairs: compute repairs count, average duration (days) and average cost
-        $tv_sort = request()->get('tv_sort', 'repairs');
-        $tv_order = strtolower(request()->get('tv_order', 'desc')) === 'asc' ? 'asc' : 'desc';
-        $supplierRows = \App\Models\Maintenance::select(
-            'supplier_id',
-            \DB::raw('count(*) as repairs'),
-            \DB::raw(
-                'avg(case when completion_date is not null then datediff(completion_date, start_date) end) as avg_duration',
-            ),
-            \DB::raw('avg(cost) as avg_cost'),
-        )
-            ->whereNotNull('supplier_id')
-            ->groupBy('supplier_id')
-            ->get();
-
-        $supplierIds = $supplierRows->pluck('supplier_id')->unique()->filter()->values()->all();
-        $suppliers = \App\Models\Supplier::whereIn('id', $supplierIds)->get()->keyBy('id');
-
-        $topSuppliers = $supplierRows->map(function ($r) use ($suppliers) {
-            $s = $suppliers->get($r->supplier_id);
-            return [
-                'id' => $r->supplier_id,
-                'name' => $s ? $s->name : trans('general.unknown'),
-                'repairs' => (int) $r->repairs,
-                'avg_duration' => $r->avg_duration !== null ? round($r->avg_duration, 1) : null,
-                'avg_cost' => $r->avg_cost !== null ? round($r->avg_cost, 2) : null,
-            ];
-        });
-
-        // apply simple request-driven sorting on the collection
-        if ($tv_sort == 'avg_duration') {
-            $topSuppliers =
-                $tv_order == 'asc' ? $topSuppliers->sortBy('avg_duration') : $topSuppliers->sortByDesc('avg_duration');
-        } elseif ($tv_sort == 'avg_cost') {
-            $topSuppliers =
-                $tv_order == 'asc' ? $topSuppliers->sortBy('avg_cost') : $topSuppliers->sortByDesc('avg_cost');
-        } else {
-            $topSuppliers =
-                $tv_order == 'asc' ? $topSuppliers->sortBy('repairs') : $topSuppliers->sortByDesc('repairs');
-        }
-
-        $topSuppliers = $topSuppliers->values();
-        
-    @endphp
-    <!-- END: Warranty Expiration Forecast -->
-
-    <!-- BEGIN: Assets with Most Failures -->
+    <!-- BEGIN: Dashboard KPI Row -->
     <div class="row" style="margin-bottom:10px;">
+
+        <!-- BEGIN: Asset Depreciation Overview -->
         <div class="col-md-4" style="margin-bottom:12px;">
+            @php
+                $assets = \App\Models\Asset::AssetsForShow()->get();
+                $totalPurchase = $assets->sum('purchase_cost');
+                $currentTotal = 0;
+                foreach ($assets as $a) {
+                    $currentTotal += (float) ($a->getDepreciatedValue() ?? 0);
+                }
+                $depreciationAmount = $totalPurchase - $currentTotal;
+                $depreciationPercent = $totalPurchase > 0 ? round(($depreciationAmount / $totalPurchase) * 100, 2) : 0;
+
+                // Build a simple 6-month purchase-cost trend (grouped by purchase_date month)
+                $trend = [];
+                for ($i = 5; $i >= 0; $i--) {
+                    $start = \Carbon\Carbon::now()->subMonths($i)->startOfMonth();
+                    $end = \Carbon\Carbon::now()->subMonths($i)->endOfMonth();
+                    $sum = \App\Models\Asset::AssetsForShow()
+                        ->whereNotNull('purchase_date')
+                        ->whereBetween('purchase_date', [$start->toDateString(), $end->toDateString()])
+                        ->sum('purchase_cost');
+                    $trend[] = (float) $sum;
+                }
+
+                $metrics = [
+                    [
+                        'value' => \App\Helpers\Helper::formatCurrencyOutput($totalPurchase),
+                        'subtitle' => 'Total Purchase Cost',
+                        'trend' => $trend,
+                        'trendLabel' => '6-month purchases',
+                    ],
+                    [
+                        'value' => \App\Helpers\Helper::formatCurrencyOutput($currentTotal),
+                        'subtitle' => 'Current Total Value (after depreciation)',
+                    ],
+                    [
+                        'value' => \App\Helpers\Helper::formatCurrencyOutput($depreciationAmount),
+                        'subtitle' => 'Total Depreciation Amount',
+                    ],
+                ];
+            @endphp            
             @include('components.asset-depreciation-card', ['metrics' => $metrics])
         </div>
+        <!-- END: Asset Depreciation Overview -->
+
+        <!-- BEGIN: Warranty Expiration Forecast -->
         <div class="col-md-4" style="margin-bottom:12px;">
+            @php
+                // Build a 6-month warranty expiration forecast (counts per upcoming month)
+                $warrantySeries = [];
+                $warrantyLabels = [];
+                for ($i = 0; $i < 6; $i++) {
+                    $start = \Carbon\Carbon::now()->addMonths($i)->startOfMonth();
+                    $end = \Carbon\Carbon::now()->addMonths($i)->endOfMonth();
+                    $warrantyLabels[] = $start->format('M Y');
+                    $count = $assets
+                        ->filter(function ($a) use ($start, $end) {
+                            if (!$a->purchase_date || !$a->warranty_months) {
+                                return false;
+                            }
+                            try {
+                                $expiry = \Carbon\Carbon::parse($a->purchase_date)->addMonths($a->warranty_months);
+                            } catch (\Exception $e) {
+                                return false;
+                            }
+                            return $expiry->between($start, $end);
+                        })
+                        ->count();
+                    $warrantySeries[] = (int) $count;
+                }
+
+                // Top suppliers by repairs: compute repairs count, average duration (days) and average cost
+                $tv_sort = request()->get('tv_sort', 'repairs');
+                $tv_order = strtolower(request()->get('tv_order', 'desc')) === 'asc' ? 'asc' : 'desc';
+                $supplierRows = \App\Models\Maintenance::select(
+                    'supplier_id',
+                    \DB::raw('count(*) as repairs'),
+                    \DB::raw(
+                        'avg(case when completion_date is not null then datediff(completion_date, start_date) end) as avg_duration',
+                    ),
+                    \DB::raw('avg(cost) as avg_cost'),
+                )
+                    ->whereNotNull('supplier_id')
+                    ->groupBy('supplier_id')
+                    ->get();
+
+                $supplierIds = $supplierRows->pluck('supplier_id')->unique()->filter()->values()->all();
+                $suppliers = \App\Models\Supplier::whereIn('id', $supplierIds)->get()->keyBy('id');
+
+                $topSuppliers = $supplierRows->map(function ($r) use ($suppliers) {
+                    $s = $suppliers->get($r->supplier_id);
+                    return [
+                        'id' => $r->supplier_id,
+                        'name' => $s ? $s->name : trans('general.unknown'),
+                        'repairs' => (int) $r->repairs,
+                        'avg_duration' => $r->avg_duration !== null ? round($r->avg_duration, 1) : null,
+                        'avg_cost' => $r->avg_cost !== null ? round($r->avg_cost, 2) : null,
+                    ];
+                });
+
+                // Apply request-driven sorting
+                if ($tv_sort == 'avg_duration') {
+                    $topSuppliers =
+                        $tv_order == 'asc' ? $topSuppliers->sortBy('avg_duration') : $topSuppliers->sortByDesc('avg_duration');
+                } elseif ($tv_sort == 'avg_cost') {
+                    $topSuppliers =
+                        $tv_order == 'asc' ? $topSuppliers->sortBy('avg_cost') : $topSuppliers->sortByDesc('avg_cost');
+                } else {
+                    $topSuppliers =
+                        $tv_order == 'asc' ? $topSuppliers->sortBy('repairs') : $topSuppliers->sortByDesc('repairs');
+                }
+
+                $topSuppliers = $topSuppliers->values();
+            @endphp
             @include('components.warranty-expiration-forecast', [
                 'series' => $warrantySeries,
                 'labels' => $warrantyLabels,
             ])
         </div>
+        <!-- END: Warranty Expiration Forecast -->
+        
+        <!-- BEGIN: Assets with Most Failures -->
         <div class="col-md-4" style="margin-bottom:12px;">
             @php
                 // Build failures summary: top assets by maintenance count
@@ -298,12 +297,11 @@
                 }
             @endphp
             @include('components.assets-most-failures-card', ['items' => $failureItems])
-        <!-- END: Assets with Most Failures -->
         </div>
-    </div>
-    <!-- END: Assets with Most Failures -->
+        <!-- END: Assets with Most Failures -->
 
-    <!-- Top Supplier and Supplier Reliability cards removed -->
+    </div>
+    <!-- END: Dashboard KPI Row -->
 
     <!-- BEGIN: Assets Predicted For Replacement -->
     @php
