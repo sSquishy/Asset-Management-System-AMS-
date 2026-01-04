@@ -300,17 +300,6 @@
             @include('components.assets-most-failures-card', ['items' => $failureItems])
         <!-- END: Assets with Most Failures -->
         </div>
-        {{-- <div class="col-md-6">
-        <!-- Optional: place for Depreciation % or details -->
-        <div class="box box-default">
-            <div class="box-body" style="display:flex; align-items:center; justify-content:center; height:100%">
-                <div style="text-align:center">
-                    <div style="font-size:22px; font-weight:700">{{ $depreciationPercent }}%</div>
-                    <div style="font-size:12px; color:#6b7280">Depreciation % (Overall)</div>
-                </div>
-            </div>
-        </div>
-    </div> --}}
     </div>
     <!-- END: Assets with Most Failures -->
 
