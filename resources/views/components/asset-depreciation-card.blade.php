@@ -5,6 +5,7 @@
     - Main content area is scrollable if needed.
 --}}
 @php
+// Initialize component variables and defaults
 use Illuminate\Support\Str;
 $title = $title ?? 'Asset Depreciation Overview';
 $metrics = $metrics ?? []; // array of ['value' => string, 'subtitle' => string, 'trend' => [nums]]
@@ -15,6 +16,7 @@ $id = 'kpi_'.substr(md5($title),0,8);
 @endphp
 
 <div id="{{ $id }}" class="kpi-card" style="background: {{ $bg }}; border-radius:8px; padding:18px; box-shadow:0 1px 2px rgba(16,24,40,0.04); font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial; height:220px; display:flex; flex-direction:column;">
+    <!-- Card header: title and carousel controls -->
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px">
         <div style="font-size:14px; color:{{ $textColor }}; font-weight:600">{{ $title }}</div>
         <div style="display:flex; gap:8px; align-items:center">
@@ -27,6 +29,7 @@ $id = 'kpi_'.substr(md5($title),0,8);
         </div>
     </div>
 
+    <!-- Card body: metric value, subtitle, and sparkline chart -->
     <div class="kpi-body" style="flex:1; overflow:auto;">
         <div style="display:flex; align-items:baseline; gap:12px;">
         <div style="flex:1">
@@ -46,8 +49,9 @@ $id = 'kpi_'.substr(md5($title),0,8);
         </div>
     </div>
 
-    {{-- Inline script for carousel rendering (uses metrics passed from server) --}}
+    <!-- Inline script for carousel and sparkline rendering -->
     <script>
+    // JS logic: handles carousel navigation and sparkline chart
     (function(){
         var root = document.getElementById('{{ $id }}');
         if(!root) return;
@@ -59,6 +63,7 @@ $id = 'kpi_'.substr(md5($title),0,8);
         var svg = root.querySelector('svg.kpi-spark-svg');
         var poly = root.querySelector('polyline.kpi-spark');
         var trendLabel = root.querySelector('.kpi-trend-label');
+        // Render current metric and sparkline
         function render(){
             var m = metrics[idx];
             valueEl.textContent = m.value || '';
@@ -82,6 +87,7 @@ $id = 'kpi_'.substr(md5($title),0,8);
                 trendLabel.textContent = '';
             }
         }
+        // Carousel navigation handlers
         root.querySelector('.kpi-prev').addEventListener('click', function(){ idx = (idx - 1 + metrics.length) % metrics.length; render(); });
         root.querySelector('.kpi-next').addEventListener('click', function(){ idx = (idx + 1) % metrics.length; render(); });
         render();
