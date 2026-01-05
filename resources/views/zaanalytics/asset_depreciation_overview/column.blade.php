@@ -8,7 +8,7 @@
     // Calculate current total value after depreciation for all assets
     $currentTotal = 0;
     foreach ($assets as $a) {
-        // Add each asset's depreciated value (custom method)
+        // Add each asset's depreciated value (custom method)K
         $currentTotal += (float) ($a->getDepreciatedValue() ?? 0);
     }
 
@@ -51,5 +51,4 @@
     ];
 @endphp
 
-// Render the KPI card component with metrics
 @include('components.asset-depreciation-card', ['metrics' => $metrics])

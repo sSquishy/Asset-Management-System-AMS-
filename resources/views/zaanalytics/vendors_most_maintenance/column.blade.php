@@ -1,9 +1,11 @@
 @php
+    // Query maintenance records, grouping by supplier, and aggregate job count, total cost, and average duration
     $vendorRows = \App\Models\Maintenance::select(
         'supplier_id',
-        \DB::raw('count(*) as jobs'),
-        \DB::raw('coalesce(sum(cost),0) as total_cost'),
+        \DB::raw('count(*) as jobs'), // Count of maintenance jobs per vendor
+        \DB::raw('coalesce(sum(cost),0) as total_cost'), // Total maintenance cost per vendor
         \DB::raw(
+            // Average duration (in days) for completed jobs per vendor
             'avg(case when completion_date is not null and start_date is not null then datediff(completion_date,start_date) end) as avg_duration',
         ),
     )
@@ -11,15 +13,19 @@
         ->groupBy('supplier_id')
         ->get();
 
+    // Get unique vendor IDs from maintenance results
     $vendorIds = $vendorRows->pluck('supplier_id')->unique()->filter()->values()->all();
+    // Map vendor IDs to Supplier models for name lookup
     $vendorsMap = \App\Models\Supplier::whereIn('id', $vendorIds)->get()->keyBy('id');
 
+    // Build vendor summary collection for display
     $vendorItems = collect();
     foreach ($vendorRows as $vr) {
         $s = $vendorsMap->get($vr->supplier_id);
         if (!$s) {
             continue;
         }
+        // Prepare vendor data: name, job count, total cost, formatted cost, and average duration
         $vendorItems->push([
             'id' => $vr->supplier_id,
             'name' => $s->name ?: 'Supplier #' . $vr->supplier_id,
@@ -29,6 +35,7 @@
             'avg_duration' => $vr->avg_duration !== null ? round($vr->avg_duration, 1) : null,
         ]);
     }
+    // Sort vendors by highest total cost and take top 8 for dashboard
     $vendorItems = $vendorItems->sortByDesc('total_cost')->values()->take(8);
 @endphp
 <div class="box box-default">

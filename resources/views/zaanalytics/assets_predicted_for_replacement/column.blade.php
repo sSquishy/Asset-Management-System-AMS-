@@ -1,18 +1,28 @@
 @php
+    // Retrieve all assets for dashboard analytics
     $assets = \App\Models\Asset::AssetsForShow()->get();
+
+    // Initialize collection for predicted replacements
     $predicted = collect();
     $now = \Carbon\Carbon::now();
+
+    // For each asset, calculate remaining useful life and replacement recommendation
     foreach ($assets as $a) {
+        // Skip assets without purchase date
         if (!$a->purchase_date) {
             continue;
         }
         try {
+            // Parse purchase date
             $purchased = \Carbon\Carbon::parse($a->purchase_date);
         } catch (\Exception $e) {
             continue;
         }
+        // Calculate asset age in years
         $ageMonths = $purchased->diffInMonths($now);
         $ageYears = round($ageMonths / 12, 1);
+
+        // Determine expected lifespan (years) using asset/model fields or warranty
         $expected = null;
         if (data_get($a, 'expected_life_years')) {
             $expected = (float) data_get($a, 'expected_life_years');
@@ -23,10 +33,15 @@
         } elseif (data_get($a, 'model.expected_life_years')) {
             $expected = (float) data_get($a, 'model.expected_life_years');
         }
+        // Fallback to default lifespan if none found
         if (!$expected) {
             $expected = 5.0;
         }
+
+        // Calculate remaining useful life
         $remaining = round($expected - $ageYears, 1);
+
+        // Get most recent maintenance record for failure/recent service info
         $lastMaint = \App\Models\Maintenance::where('asset_id', $a->id)->orderByDesc('start_date')->first();
         $recentFailure = false;
         $lastDate = null;
@@ -36,10 +51,13 @@
                 ? \Carbon\Carbon::parse($lastMaint->start_date)->toDateString()
                 : null;
             $lastType = $lastMaint->asset_maintenance_type ?? null;
+            // Mark as recent failure if within last 180 days
             $recentFailure = $lastMaint->start_date
                 ? \Carbon\Carbon::parse($lastMaint->start_date)->diffInDays($now) <= 180
                 : false;
         }
+
+        // Compute recommended replacement date
         if ($remaining <= 0) {
             $recommended = $now->toDateString();
         } else {
@@ -48,6 +66,8 @@
                 ->startOfMonth()
                 ->toDateString();
         }
+
+        // Add asset prediction data to collection
         $predicted->push([
             'id' => $a->id,
             'name' => $a->name ?: ($a->asset_tag ?: 'Asset #' . $a->id),
@@ -61,6 +81,8 @@
             'recommended_date' => $recommended,
         ]);
     }
+
+    // Sort by lowest remaining useful life and take top 12 for display
     $predicted = $predicted->sortBy('remaining_years')->values()->take(12);
 @endphp
 <div class="box box-default">

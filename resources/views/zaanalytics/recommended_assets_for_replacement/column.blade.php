@@ -1,18 +1,26 @@
 @php
+    // Retrieve all assets for dashboard analytics
     $assets = \App\Models\Asset::AssetsForShow()->get();
+
+    // Build predicted replacement list (same logic as predicted column)
     $predicted = collect();
     $now = \Carbon\Carbon::now();
     foreach ($assets as $a) {
+        // Skip assets without purchase date
         if (!$a->purchase_date) {
             continue;
         }
         try {
+            // Parse purchase date
             $purchased = \Carbon\Carbon::parse($a->purchase_date);
         } catch (\Exception $e) {
             continue;
         }
+        // Calculate asset age in years
         $ageMonths = $purchased->diffInMonths($now);
         $ageYears = round($ageMonths / 12, 1);
+
+        // Determine expected lifespan (years)
         $expected = null;
         if (data_get($a, 'expected_life_years')) {
             $expected = (float) data_get($a, 'expected_life_years');
@@ -23,10 +31,15 @@
         } elseif (data_get($a, 'model.expected_life_years')) {
             $expected = (float) data_get($a, 'model.expected_life_years');
         }
+        // Fallback to default lifespan if none found
         if (!$expected) {
             $expected = 5.0;
         }
+
+        // Calculate remaining useful life
         $remaining = round($expected - $ageYears, 1);
+
+        // Get most recent maintenance record for failure/recent service info
         $lastMaint = \App\Models\Maintenance::where('asset_id', $a->id)->orderByDesc('start_date')->first();
         $recentFailure = false;
         $lastDate = null;
@@ -36,10 +49,13 @@
                 ? \Carbon\Carbon::parse($lastMaint->start_date)->toDateString()
                 : null;
             $lastType = $lastMaint->asset_maintenance_type ?? null;
+            // Mark as recent failure if within last 180 days
             $recentFailure = $lastMaint->start_date
                 ? \Carbon\Carbon::parse($lastMaint->start_date)->diffInDays($now) <= 180
                 : false;
         }
+
+        // Compute recommended replacement date
         if ($remaining <= 0) {
             $recommended = $now->toDateString();
         } else {
@@ -48,6 +64,8 @@
                 ->startOfMonth()
                 ->toDateString();
         }
+
+        // Add asset prediction data to collection
         $predicted->push([
             'id' => $a->id,
             'name' => $a->name ?: ($a->asset_tag ?: 'Asset #' . $a->id),
@@ -62,12 +80,16 @@
         ]);
     }
     $predicted = $predicted->sortBy('remaining_years')->values()->take(12);
+
+    // Map predicted assets to recommended list with additional logic
     $recommended = $predicted
         ->map(function ($p) {
+            // Find asset by id
             $asset = \App\Models\Asset::find($p['id']);
             $ageYears = null;
             if ($asset && $asset->purchase_date) {
                 try {
+                    // Calculate asset age in years (precise)
                     $ageYears = round(
                         \Carbon\Carbon::parse($asset->purchase_date)->diffInDays(
                             \Carbon\Carbon::now(),
@@ -78,8 +100,11 @@
                     $ageYears = null;
                 }
             }
+            // Compute average repair cost for asset
             $avgRepairCost =
                 (float) (\App\Models\Maintenance::where('asset_id', $p['id'])->avg('cost') ?? 0);
+
+            // Determine reason for recommendation
             if ($p['recent_failure']) {
                 $reason = 'High Failure';
             } elseif ($ageYears !== null && $ageYears >= 5) {
@@ -89,6 +114,8 @@
             } else {
                 $reason = 'Age';
             }
+
+            // Assign priority based on remaining years and recent failures
             if ($p['remaining_years'] <= 0 || $p['recent_failure']) {
                 $priority = 'High';
             } elseif ($p['remaining_years'] <= 2) {
@@ -96,10 +123,14 @@
             } else {
                 $priority = 'Low';
             }
+
+            // Estimate replacement cost
             $estCost =
                 $asset && $asset->purchase_cost
                     ? \App\Helpers\Helper::formatCurrencyOutput($asset->purchase_cost)
                     : trans('general.unknown');
+
+            // Return merged data for display
             return array_merge($p, [
                 'reason' => $reason,
                 'priority' => $priority,

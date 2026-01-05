@@ -1,22 +1,35 @@
 @php
+    // Retrieve all assets for dashboard analytics
     $assets = \App\Models\Asset::AssetsForShow()->get();
+
+    // Initialize collection for assets nearing warranty expiration
     $warrantySoon = collect();
+
+    // Define threshold (in days) for "nearing" warranty expiration
     $thresholdDays = 60; // consider "nearing" as within next 60 days
+
+    // Loop through each asset to check warranty status
     foreach ($assets as $a) {
+        // Skip assets without purchase date or warranty info
         if (!$a->purchase_date || empty($a->warranty_months)) {
             continue;
         }
         try {
+            // Calculate warranty expiry date
             $expiry = \Carbon\Carbon::parse($a->purchase_date)->addMonths($a->warranty_months);
         } catch (\Exception $e) {
             continue;
         }
         $now = \Carbon\Carbon::now();
+        // Skip assets whose warranty already expired
         if ($expiry->lt($now)) {
             continue;
-        } // already expired
+        }
+        // Calculate days remaining until warranty expires
         $daysRemaining = $now->diffInDays($expiry);
+        // If within threshold, add to collection for display
         if ($daysRemaining <= $thresholdDays) {
+            // Get assigned user, department, and supplier info
             $assigned =
                 optional($a->assigned_user)->name ?:
                 optional($a->assigned_to)->name ?:
@@ -24,6 +37,7 @@
                 '';
             $department = optional($a->location)->name ?: optional($a->department)->name ?: '';
             $supplier = optional($a->supplier)->name ?: '';
+            // Add asset info to warrantySoon collection
             $warrantySoon->push([
                 'asset_tag' => $a->asset_tag ?: '',
                 'name' => $a->name ?: 'Asset #' . $a->id,
@@ -36,6 +50,8 @@
             ]);
         }
     }
+
+    // Sort assets by days remaining for display
     $warrantySoon = $warrantySoon->sortBy('days_remaining')->values();
 @endphp
 <div class="box box-default">
