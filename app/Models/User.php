@@ -78,6 +78,8 @@ class User extends SnipeModel implements AuthenticatableContract, AuthorizableCo
         'state',
         'username',
         'zip',
+        'security_license_number',
+        'security_license_expiration',
         'remote',
         'start_date',
         'end_date',

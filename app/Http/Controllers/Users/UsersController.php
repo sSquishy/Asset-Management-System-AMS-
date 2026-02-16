@@ -119,6 +119,8 @@ class UsersController extends Controller
         $user->start_date = $request->input('start_date', null);
         $user->end_date = $request->input('end_date', null);
         $user->autoassign_licenses = $request->input('autoassign_licenses', 0);
+        $user->security_license_number = $request->input('security_license_number');
+        $user->security_license_expiration = $request->input('security_license_expiration');
 
         // Strip out the superuser permission if the user isn't a superadmin
         $permissions_array = $request->input('permission');
@@ -280,6 +282,8 @@ class UsersController extends Controller
         $user->start_date = $request->input('start_date', null);
         $user->end_date = $request->input('end_date', null);
         $user->autoassign_licenses = $request->input('autoassign_licenses', 0);
+        $user->security_license_number = $request->input('security_license_number');
+        $user->security_license_expiration = $request->input('security_license_expiration');
 
         // Set this here so that we can overwrite it later if the user is an admin or superadmin
         $user->activated = $request->input('activated', auth()->user()->is($user) ? 1 : $user->activated);

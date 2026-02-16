@@ -37,6 +37,8 @@ class SaveUserRequest extends FormRequest
             'manager_id' => 'nullable|exists:users,id',
             'company_id' => ['nullable', 'integer', 'exists:companies,id'],
             'middle_name' => 'nullable|string|max:191',
+            'security_license_number' => 'nullable|string|max:191',
+            'security_license_expiration' => 'nullable|date|required_with:security_license_number|after:today',
         ];
 
         switch ($this->method()) {

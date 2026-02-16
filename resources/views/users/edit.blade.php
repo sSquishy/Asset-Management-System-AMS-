@@ -399,21 +399,11 @@
                             </div>
 
                             <!-- Security License Expiration Date -->
-                            <div class="form-group {{ $errors->has('security_license_expiration') ? 'has-error' : '' }}">
-                                <label class="col-md-3 control-label" for="security_license_expiration">
-                                    Security License Expiration Date
-                                </label>
-                                <div class="col-md-6">
-                                    <input
-                                        class="form-control"
-                                        type="date"
-                                        name="security_license_expiration"
-                                        id="security_license_expiration"
-                                        value="{{ old('security_license_expiration', optional($user->security_license_expiration)->format('Y-m-d')) }}"
-                                    />
-                                    {!! $errors->first('security_license_expiration', '<span class="alert-msg" aria-hidden="true">:message</span>') !!}
-                                </div>
-                            </div>
+                            @include ('partials.forms.edit.datepicker', [
+                                'translated_name' => 'Security License Expiration',
+                                'fieldname' => 'security_license_expiration',
+                                'item' => $user
+                            ])
 
 
                               <!-- Company -->
