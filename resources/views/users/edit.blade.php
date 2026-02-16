@@ -87,11 +87,88 @@
           <div class="tab-pane active" id="info">
             <div class="row">
               <div class="col-md-12">
+
+                              
+                <!-- Employee Number -->
+                <div class="form-group {{ $errors->has('employee_num') ? 'has-error' : '' }}">
+                    <label class="col-md-3 control-label" for="employee_num">{{ trans('general.employee_number') }}</label>
+                    <div class="col-md-6">
+                        <input
+                        class="form-control"
+                        type="text"
+                        aria-label="employee_num"
+                        name="employee_num"
+                        maxlength="191"
+                        id="employee_num"
+                        value="{{ old('employee_num', $user->employee_num) }}"
+                        />
+                        {!! $errors->first('employee_num', '<span class="alert-msg" aria-hidden="true">:message</span>') !!}
+                    </div>
+                </div>
+
+                <!-- Employee Status -->
+                <div class="form-group {{ $errors->has('activated') ? 'has-error' : '' }}">
+                    <label class="col-md-3 control-label" for="activated">
+                        Employee Status
+                    </label>
+                    <div class="col-md-6">
+                        @if (((!Gate::allows('editableOnDemo')) && ($user->id)) 
+                            || (!Gate::allows('canEditAuthFields', $user)) 
+                            || ($user->id == auth()->user()->id))
+                            <!-- Disabled Select -->
+                            <select class="form-control" disabled>
+                                <option value="1" {{ old('activated', $user->activated) == '1' ? 'selected' : '' }}>
+                                    Active
+                                </option>
+                                <option value="0" {{ old('activated', $user->activated) == '0' ? 'selected' : '' }}>
+                                    Inactive
+                                </option>
+                            </select>
+                            @cannot('canEditAuthFields', $user)
+                                <p class="help-block">
+                                    <x-icon type="locked" />
+                                    {{ trans('general.action_permission_generic', [
+                                        'action' => trans('general.edit'),
+                                        'item_type' => trans('general.login_status')
+                                    ]) }}
+                                </p>
+                            @endcannot
+                        @else
+                            <!-- Editable Select -->
+                            <select name="activated" id="activated" class="form-control">
+                                <option value="1" {{ old('activated', $user->activated ?? 1) == '1' ? 'selected' : '' }}>
+                                    Active
+                                </option>
+                                <option value="0" {{ old('activated', $user->activated ?? 1) == '0' ? 'selected' : '' }}>
+                                    Inactive
+                                </option>
+                            </select>
+                        @endif
+                        {!! $errors->first('activated', '<span class="alert-msg">:message</span>') !!}
+                        <p class="help-block">
+                            {{ trans('admin/users/general.activated_help_text') }}
+                        </p>
+                    </div>
+                </div>
                 <!-- First Name -->
                  @include('partials.forms.edit.name-first')
 
                 <!-- Last Name -->
                 @include('partials.forms.edit.name-last')
+                            <!-- Middle Name -->
+                            <div class="form-group">
+                                <label class="col-md-3 control-label" for="middle_name">
+                                    Middle Name
+                                </label>
+                                <div class="col-md-6">
+                                    <input class="form-control"
+                                        type="text"
+                                        name="middle_name"
+                                        id="middle_name"
+                                        value="{{ old('middle_name', $user->middle_name ?? '') }}"
+                                        maxlength="191" />
+                                </div>
+                            </div>
 
                 <!-- Username -->
                 <div class="form-group {{ $errors->has('username') ? 'has-error' : '' }}">
@@ -211,55 +288,6 @@
                     </div>
                 @endif
 
-              <!-- Activation Status (Can the user login?) -->
-                  <div class="form-group {{ $errors->has('activated') ? 'has-error' : '' }}">
-                          <div class="col-md-9 col-md-offset-3">
-
-                              <!-- disallow changes to the user's login status -->
-                              @if (((!Gate::allows('editableOnDemo'))  && ($user->id)) || (!Gate::allows('canEditAuthFields', $user)) || ($user->id == auth()->user()->id))
-                                  <!-- demo mode - disallow changes -->
-                                  <label class="form-control form-control--disabled">
-                                      <input type="checkbox" value="1" name="activated" class="disabled" {{ (old('activated', $user->activated)) == '1' ? ' checked="checked"' : '' }} disabled aria-label="activated">
-                                      {{ trans('admin/users/general.activated_help_text') }}
-                                  </label>
-
-                                  @cannot('canEditAuthFields', $user)
-                                  <!-- authed user is an admin or regular user and is trying to edit someone higher -->
-                                      <p class="help-block">
-                                      <x-icon type="locked" />
-                                          {{ trans('general.action_permission_generic', ['action' => trans('general.edit'), 'item_type' => trans('general.login_status')]) }}
-                                  </p>
-                                  @endcannot
-
-                                  @if ((auth()->user()->cannot('editableOnDemo')) && ($user->id))
-                                      <!-- app is locked -->
-                                      <p class="text-warning">
-                                          <x-icon type="locked" />
-                                          {{ trans('admin/users/table.lock_passwords') }}
-                                      </p>
-                                  @endif
-
-                                  @if ($user->id == auth()->user()->id)
-                                      <!-- disallow editing activation on your own account -->
-                                      <p class="help-block">
-                                          <x-icon type="locked" />
-                                          {{ trans('admin/users/general.activated_disabled_help_text') }}
-                                      </p>
-                                  @endcannot
-
-                              @else
-                                  <!-- everything is normal - as you were -->
-                                  <label class="form-control">
-                                      <input type="checkbox" value="1" name="activated"{{ ((old('activated') == '1') || ($user->activated) == '1') ? ' checked="checked"' : '' }} aria-label="activated" id="activated">
-                                      {{ trans('admin/users/general.activated_help_text') }}
-                                  </label>
-
-                              @endif
-
-
-                          </div>
-                  </div>
-
                   <!-- Email -->
                 <div class="form-group {{ $errors->has('email') ? 'has-error' : '' }}">
                   <label class="col-md-3 control-label" for="email">{{ trans('admin/users/table.email') }} </label>
@@ -351,6 +379,41 @@
                                       {!! $errors->first('display_name', '<span class="alert-msg" aria-hidden="true">:message</span>') !!}
                                   </div>
                               </div>
+                              
+                            <!-- Security License Number -->
+                            <div class="form-group {{ $errors->has('security_license_number') ? 'has-error' : '' }}">
+                                <label class="col-md-3 control-label" for="security_license_number">
+                                    Security License #
+                                </label>
+                                <div class="col-md-6">
+                                    <input
+                                        class="form-control"
+                                        type="text"
+                                        name="security_license_number"
+                                        id="security_license_number"
+                                        maxlength="191"
+                                        value="{{ old('security_license_number', $user->security_license_number ?? '') }}"
+                                    />
+                                    {!! $errors->first('security_license_number', '<span class="alert-msg" aria-hidden="true">:message</span>') !!}
+                                </div>
+                            </div>
+
+                            <!-- Security License Expiration Date -->
+                            <div class="form-group {{ $errors->has('security_license_expiration') ? 'has-error' : '' }}">
+                                <label class="col-md-3 control-label" for="security_license_expiration">
+                                    Security License Expiration Date
+                                </label>
+                                <div class="col-md-6">
+                                    <input
+                                        class="form-control"
+                                        type="date"
+                                        name="security_license_expiration"
+                                        id="security_license_expiration"
+                                        value="{{ old('security_license_expiration', optional($user->security_license_expiration)->format('Y-m-d')) }}"
+                                    />
+                                    {!! $errors->first('security_license_expiration', '<span class="alert-msg" aria-hidden="true">:message</span>') !!}
+                                </div>
+                            </div>
 
 
                               <!-- Company -->
@@ -379,24 +442,6 @@
                                   </div>
                               </div>
 
-                              <!-- Employee Number -->
-                              <div class="form-group {{ $errors->has('employee_num') ? 'has-error' : '' }}">
-                                  <label class="col-md-3 control-label" for="employee_num">{{ trans('general.employee_number') }}</label>
-                                  <div class="col-md-6">
-                                      <input
-                                              class="form-control"
-                                              type="text"
-                                              aria-label="employee_num"
-                                              name="employee_num"
-                                              maxlength="191"
-                                              id="employee_num"
-                                              value="{{ old('employee_num', $user->employee_num) }}"
-                                      />
-                                      {!! $errors->first('employee_num', '<span class="alert-msg" aria-hidden="true">:message</span>') !!}
-                                  </div>
-                              </div>
-
-
                               <!-- Jobtitle -->
                               <div class="form-group {{ $errors->has('jobtitle') ? 'has-error' : '' }}">
                                   <label class="col-md-3 control-label" for="jobtitle">{{ trans('admin/users/table.title') }}</label>
@@ -420,9 +465,17 @@
                               <!--  Department -->
                               @include ('partials.forms.edit.department-select', ['translated_name' => trans('general.department'), 'fieldname' => 'department_id'])
 
-                              @include ('partials.forms.edit.datepicker', ['translated_name' => trans('general.start_date'), 'fieldname' => 'start_date', 'item' => $user])
+                            @include ('partials.forms.edit.datepicker', [
+                                'translated_name' => 'Hire Date',
+                                'fieldname' => 'start_date',
+                                'item' => $user
+                            ])
 
-                              @include ('partials.forms.edit.datepicker', ['translated_name' => trans('general.end_date'), 'fieldname' => 'end_date', 'item' => $user])
+                            @include ('partials.forms.edit.datepicker', [
+                                'translated_name' => 'Termination Date',
+                                'fieldname' => 'end_date',
+                                'item' => $user
+                            ])
 
                               <!-- VIP checkbox -->
 

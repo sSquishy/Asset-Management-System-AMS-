@@ -35,7 +35,8 @@ class SaveUserRequest extends FormRequest
         $rules = [
             'department_id' => 'nullable|integer|exists:departments,id',
             'manager_id' => 'nullable|exists:users,id',
-            'company_id' => ['nullable', 'integer', 'exists:companies,id']
+            'company_id' => ['nullable', 'integer', 'exists:companies,id'],
+            'middle_name' => 'nullable|string|max:191',
         ];
 
         switch ($this->method()) {

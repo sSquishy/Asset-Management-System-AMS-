@@ -63,6 +63,7 @@ class User extends SnipeModel implements AuthenticatableContract, AuthorizableCo
         'email',
         'employee_num',
         'first_name',
+        'middle_name',
         'jobtitle',
         'last_name',
         'display_name',

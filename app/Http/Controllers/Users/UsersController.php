@@ -95,6 +95,7 @@ class UsersController extends Controller
             $user->password = bcrypt($request->input('password'));
         }
         $user->first_name = $request->input('first_name');
+        $user->middle_name = $request->input('middle_name');
         $user->last_name = $request->input('last_name');
         $user->locale = $request->input('locale');
         $user->employee_num = $request->input('employee_num');
@@ -254,6 +255,7 @@ class UsersController extends Controller
         // Update the user fields
 
         $user->first_name = $request->input('first_name');
+        $user->middle_name = $request->input('middle_name');
         $user->last_name = $request->input('last_name');
         $user->display_name = $request->input('display_name');
         $user->two_factor_optin = $request->input('two_factor_optin') ?: 0;
