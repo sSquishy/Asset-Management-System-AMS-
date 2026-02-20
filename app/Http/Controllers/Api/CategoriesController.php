@@ -46,6 +46,7 @@ class CategoriesController extends Controller
 
         $categories = Category::select([
             'id',
+            'parent_id',
             'created_by',
             'created_at',
             'updated_at',
@@ -58,6 +59,8 @@ class CategoriesController extends Controller
             'notes',
             ])
             ->with('adminuser')
+            ->with('parent')
+            ->with('parent')
             ->withCount('accessories as accessories_count', 'consumables as consumables_count', 'components as components_count', 'licenses as licenses_count', 'models as models_count');
 
 
@@ -148,6 +151,21 @@ class CategoriesController extends Controller
         $category = new Category;
         $category->fill($request->all());
         $category->category_type = strtolower($request->input('category_type'));
+
+        // Only accept parent_id for assets
+        if ($category->category_type !== 'asset') {
+            $category->parent_id = null;
+        }
+        // If parent_id provided, ensure parent exists and matches category_type
+        if ($request->filled('parent_id')) {
+            $parent = Category::find($request->input('parent_id'));
+            if (! $parent) {
+                return response()->json(Helper::formatStandardApiResponse('error', null, ['parent_id' => trans('admin/categories/message.invalid_parent')], 422), 422);
+            }
+            if ($parent->category_type !== $category->category_type) {
+                return response()->json(Helper::formatStandardApiResponse('error', null, ['parent_id' => trans('admin/categories/message.invalid_parent_type')], 422), 422);
+            }
+        }
         $category = $request->handleImages($category);
 
         if ($category->save()) {
@@ -193,7 +211,32 @@ class CategoriesController extends Controller
                 Helper::formatStandardApiResponse('error', null,  ['category_type' => trans('admin/categories/message.update.cannot_change_category_type')], 422)
             );
         }
-        $category->fill($request->all());
+        $requestData = $request->all();
+
+        // If changing to non-asset, clear parent
+        if (isset($requestData['category_type']) && $requestData['category_type'] !== 'asset') {
+            $requestData['parent_id'] = null;
+        }
+
+        // Prevent self-parenting and cycles
+        if (!empty($requestData['parent_id'])) {
+            if ($requestData['parent_id'] == $category->id) {
+                return response()->json(Helper::formatStandardApiResponse('error', null, ['parent_id' => trans('admin/categories/message.invalid_parent')], 422), 422);
+            }
+            $p = Category::find($requestData['parent_id']);
+            // Ensure the selected parent is of the same category_type
+            if ($p && $p->category_type !== $category->category_type) {
+                return response()->json(Helper::formatStandardApiResponse('error', null, ['parent_id' => trans('admin/categories/message.invalid_parent_type')], 422), 422);
+            }
+            while ($p) {
+                if ($p->id == $category->id) {
+                    return response()->json(Helper::formatStandardApiResponse('error', null, ['parent_id' => trans('admin/categories/message.invalid_parent_cycle')], 422), 422);
+                }
+                $p = $p->parent;
+            }
+        }
+
+        $category->fill($requestData);
         $category = $request->handleImages($category);
 
         if ($category->save()) {

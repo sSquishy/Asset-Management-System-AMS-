@@ -49,6 +49,7 @@ class CategoriesTransformer
             $array = [
                 'id' => (int) $category->id,
                 'name' => e($category->name),
+                'parent' => $category->parent_id ? ['id' => (int) $category->parent_id, 'name' => e($category->parent ? $category->parent->name : '')] : null,
                 'image' =>   ($category->image) ? Storage::disk('public')->url('categories/'.e($category->image)) : null,
                 'category_type' => Helper::categoryTypeList($category->category_type),
                 'has_eula' => ($category->getEula() ? true : false),

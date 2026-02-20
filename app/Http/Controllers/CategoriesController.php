@@ -47,8 +47,11 @@ class CategoriesController extends Controller
         // Show the page
         $this->authorize('create', Category::class);
 
-        return view('categories/edit')->with('item', new Category)
-            ->with('category_types', Helper::categoryTypeList());
+        return view('categories/edit')
+            ->with('item', new Category)
+            ->with('category_types', Helper::categoryTypeList())
+            // For create, limit parent options to asset-type categories (parenting only applies to assets)
+            ->with('parentOptions', Category::getTreeOptions('asset'));
     }
 
     /**
@@ -62,18 +65,33 @@ class CategoriesController extends Controller
     public function store(ImageUploadRequest $request) : RedirectResponse
     {
         $this->authorize('create', Category::class);
+        // Validate parent_id and other rules
+        $request->validate(['parent_id' => 'nullable|integer|exists:categories,id']);
+
         $category = new Category();
-        $category->name = $request->input('name');
+        $category->fill($request->all());
         $category->category_type = $request->input('category_type');
-        $category->eula_text = $request->input('eula_text');
-        $category->use_default_eula = $request->input('use_default_eula', '0');
-        $category->require_acceptance = $request->input('require_acceptance', '0');
-        $category->alert_on_response = $request->input('alert_on_response', '0');
-        $category->checkin_email = $request->input('checkin_email', '0');
-        $category->notes = $request->input('notes');
         $category->created_by = auth()->id();
 
+        // If category type is not asset, clear parent_id
+        if ($category->category_type !== 'asset') {
+            $category->parent_id = null;
+        }
+
+        // If a parent_id is provided, ensure the parent exists and matches category_type
+        if ($request->filled('parent_id')) {
+            $parent = Category::find($request->input('parent_id'));
+            if (! $parent) {
+                return redirect()->back()->withInput()->withErrors(['parent_id' => trans('admin/categories/message.invalid_parent')]);
+            }
+            if ($parent->category_type !== $category->category_type) {
+                return redirect()->back()->withInput()->withErrors(['parent_id' => trans('admin/categories/message.invalid_parent_type')]);
+            }
+        }
+
+        // Handle images
         $category = $request->handleImages($category);
+
         if ($category->save()) {
             return redirect()->route('categories.index')->with('success', trans('admin/categories/message.create.success'));
         }
@@ -92,8 +110,10 @@ class CategoriesController extends Controller
     public function edit(Category $category) : RedirectResponse | View
     {
         $this->authorize('update', Category::class);
-        return view('categories/edit')->with('item', $category)
-        ->with('category_types', Helper::categoryTypeList());
+        return view('categories/edit')
+            ->with('item', $category)
+            ->with('category_types', Helper::categoryTypeList())
+            ->with('parentOptions', Category::getTreeOptions($category->category_type, $category->id));
     }
 
     /**
@@ -117,7 +137,44 @@ class CategoriesController extends Controller
         
         $category->category_type = $request->input('category_type', $category->category_type);
 
-        $category->fill($request->all());
+        $request->validate(['parent_id' => 'nullable|integer|exists:categories,id']);
+
+        // Prevent self-parenting
+        if ($request->filled('parent_id') && ($request->input('parent_id') == $category->id)) {
+            return redirect()->back()->withInput()->withErrors(['parent_id' => trans('admin/categories/message.invalid_parent')]);
+        }
+
+        // If a parent_id is provided, ensure the parent exists and matches category_type
+        if ($request->filled('parent_id')) {
+            $parent = Category::find($request->input('parent_id'));
+            if (! $parent) {
+                return redirect()->back()->withInput()->withErrors(['parent_id' => trans('admin/categories/message.invalid_parent')]);
+            }
+            if ($parent->category_type !== $request->input('category_type', $category->category_type)) {
+                return redirect()->back()->withInput()->withErrors(['parent_id' => trans('admin/categories/message.invalid_parent_type')]);
+            }
+        }
+        // If changing type to non-asset, clear parent
+        if ($request->filled('category_type') && $request->input('category_type') !== 'asset') {
+            $requestData = $request->all();
+            $requestData['parent_id'] = null;
+        } else {
+            $requestData = $request->all();
+        }
+
+        // Prevent cycles: ensure selected parent is not a descendant of this category
+        if (!empty($requestData['parent_id'])) {
+            $parent = Category::find($requestData['parent_id']);
+            $p = $parent;
+            while ($p) {
+                if ($p->id == $category->id) {
+                    return redirect()->back()->withInput()->withErrors(['parent_id' => trans('admin/categories/message.invalid_parent_cycle')]);
+                }
+                $p = $p->parent;
+            }
+        }
+
+        $category->fill($requestData);
 
         $category->eula_text = $request->input('eula_text');
         $category->use_default_eula = $request->input('use_default_eula', '0');

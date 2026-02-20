@@ -30,6 +30,14 @@ class CategoryPresenter extends Presenter
                 'visible' => true,
                 'formatter' => 'categoriesLinkFormatter',
             ], [
+                'field' => 'parent',
+                'searchable' => true,
+                'sortable' => true,
+                'switchable' => true,
+                'title' => trans('Parent Category'),
+                'visible' => true,
+                'formatter' => 'categoriesLinkObjFormatter',
+            ], [
                 'field' => 'image',
                 'searchable' => false,
                 'sortable' => true,

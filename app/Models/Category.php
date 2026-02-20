@@ -42,6 +42,7 @@ class Category extends SnipeModel
     public $rules = [
         'created_by' => 'numeric|nullable',
         'name'   => 'required|min:1|max:255|two_column_unique_undeleted:category_type',
+        'parent_id' => 'nullable|integer|exists:categories,id',
         'require_acceptance'   => 'boolean',
         'use_default_eula'   => 'boolean',
         'category_type'   => 'required|in:asset,accessory,consumable,component,license',
@@ -65,6 +66,7 @@ class Category extends SnipeModel
      * @var array
      */
     protected $fillable = [
+        'parent_id',
         'category_type',
         'checkin_email',
         'eula_text',
@@ -242,6 +244,77 @@ class Category extends SnipeModel
     public function adminuser()
     {
         return $this->belongsTo(\App\Models\User::class, 'created_by');
+    }
+
+    /**
+     * Parent category relationship
+     */
+    public function parent()
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    /**
+     * Children categories relationship
+     */
+    public function children()
+    {
+        return $this->hasMany(self::class, 'parent_id');
+    }
+
+    /**
+     * Return hierarchical list of categories as id => label with indentation.
+     * Optionally filter by category_type and exclude an id.
+     */
+    public static function getTreeOptions($category_type = null, $excludeId = null)
+    {
+        $query = self::query();
+        if ($category_type) {
+            $query->where('category_type', $category_type);
+        }
+
+        $all = $query->orderBy('name')->get();
+
+        // build tree
+        $items = [];
+        $map = [];
+        foreach ($all as $cat) {
+            $map[$cat->id] = ['item' => $cat, 'children' => []];
+        }
+
+        foreach ($map as $id => &$node) {
+            $pid = $node['item']->parent_id;
+            if ($pid && isset($map[$pid])) {
+                $map[$pid]['children'][] = &$node;
+            }
+        }
+
+        // collect roots
+        $roots = [];
+        foreach ($map as $id => $node) {
+            if (!$node['item']->parent_id || !isset($map[$node['item']->parent_id])) {
+                $roots[] = $node;
+            }
+        }
+
+        $result = [null => trans('None')];
+
+        $traverse = function ($nodes, $depth = 0) use (&$traverse, &$result, $excludeId) {
+            foreach ($nodes as $n) {
+                if ($excludeId && $n['item']->id == $excludeId) {
+                    continue;
+                }
+                $label = str_repeat('— ', $depth) . $n['item']->name;
+                $result[$n['item']->id] = $label;
+                if (!empty($n['children'])) {
+                    $traverse($n['children'], $depth + 1);
+                }
+            }
+        };
+
+        $traverse($roots);
+
+        return $result;
     }
 
     /**

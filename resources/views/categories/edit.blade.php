@@ -9,13 +9,12 @@
 
 @section('inputFields')
 
-@include ('partials.forms.edit.name', ['translated_name' => trans('admin/categories/general.name')])
-
 <!-- Type -->
 <div class="form-group {{ $errors->has('category_type') ? ' has-error' : '' }}">
     <label for="category_type" class="col-md-3 control-label">{{ trans('general.type') }}</label>
     <div class="col-md-7 required">
         <x-input.select
+            id="category_type"
             name="category_type"
             :options="$category_types"
             :selected="old('category_type', $item->category_type)"
@@ -29,6 +28,25 @@
         <p class="help-block">{!! trans('admin/categories/message.update.cannot_change_category_type') !!} </p>
     </div>
 </div>
+
+@include ('partials.forms.edit.name', ['translated_name' => trans('admin/categories/general.name')])
+
+<!-- Parent -->
+<div id="parent_div" class="form-group {{ $errors->has('parent_id') ? ' has-error' : '' }}">
+    <label for="parent_id" class="col-md-3 control-label">{{ trans('Parent Asset') }}</label>
+    <div class="col-md-7">
+        <x-input.select
+            id="parent_id"
+            name="parent_id"
+            :options="$parentOptions"
+            :selected="old('parent_id', $item->parent_id ?? null)"
+            style="min-width:350px; width:75%"
+            aria-label="parent_id"
+        />
+        {!! $errors->first('parent_id', '<span class="alert-msg" aria-hidden="true"><i class="fas fa-times" aria-hidden="true"></i> :message</span>') !!}
+    </div>
+</div>
+
 
 <livewire:category-edit-form
     :alert-on-response="(bool) old('alert_on_response', $item->alert_on_response)"
@@ -85,4 +103,71 @@
 
 
 
+@stop
+
+@section('moar_scripts')
+<script nonce="{{ csrf_token() }}">
+    document.addEventListener('DOMContentLoaded', function () {
+        // Try to find the select element (by id first, then by name)
+        var typeSelect = document.getElementById('category_type') || document.querySelector('select[name="category_type"]');
+        var parentDiv = document.getElementById('parent_div');
+        if (!parentDiv) return;
+
+        function selectContainsAsset(el) {
+            if (!el) return false;
+            var val = (el.value || '').toString().toLowerCase();
+            if (val === 'asset') return true;
+
+            // Check selected option text
+            try {
+                var txt = (el.options && el.options[el.selectedIndex]) ? el.options[el.selectedIndex].text : '';
+                if (txt && txt.toString().toLowerCase() === 'asset') return true;
+            } catch (e) {}
+
+            // If Select2 replaced the element, check rendered container
+            try {
+                var sel2Container = document.querySelector('#' + (el.id || 'category_type') + ' + .select2-container .select2-selection__rendered');
+                if (sel2Container && sel2Container.textContent && sel2Container.textContent.toLowerCase().indexOf('asset') !== -1) return true;
+            } catch (e) {}
+
+            return false;
+        }
+
+        function toggleParent() {
+            var show = selectContainsAsset(typeSelect);
+            if (show) {
+                parentDiv.style.display = '';
+            } else {
+                parentDiv.style.display = 'none';
+                var sel = parentDiv.querySelector('select[name="parent_id"]');
+                if (sel) {
+                    sel.value = '';
+                    // trigger change for enhanced widgets
+                    if (window.jQuery) try { jQuery(sel).trigger('change'); } catch (e) {}
+                }
+            }
+        }
+
+        // Initial run
+        toggleParent();
+
+        // Attach native change
+        if (typeSelect) {
+            typeSelect.addEventListener('change', toggleParent);
+            // support Select2 events
+            if (window.jQuery) {
+                try {
+                    jQuery(typeSelect).on('select2:select select2:unselect change', toggleParent);
+                } catch (e) {}
+            }
+        }
+
+        // Re-evaluate after Livewire updates
+        document.addEventListener('livewire:update', function () {
+            // re-resolve the element in case it was re-rendered
+            typeSelect = document.getElementById('category_type') || document.querySelector('select[name="category_type"]');
+            toggleParent();
+        });
+    });
+</script>
 @stop

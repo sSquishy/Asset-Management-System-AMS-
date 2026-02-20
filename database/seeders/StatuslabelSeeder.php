@@ -3,35 +3,48 @@
 namespace Database\Seeders;
 
 use App\Models\Statuslabel;
-use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class StatuslabelSeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
     public function run()
     {
-        Statuslabel::truncate();
+        // Mapping of new labels to their status type: deployable, pending, undeployable, archived
+        $mapping = [
+            'Deployed' => 'deployable',
+            'In Store Available' => 'deployable',
+            'In Store Reserved' => 'pending',
+            'In Transit' => 'deployable',
+            'In Store Repairable' => 'pending',
+            'In Store Unrepairable' => 'undeployable',
+            'In Store Obsolete' => 'archived',
+            'Lost/Stolen' => 'undeployable',
+            'Tech Refresh' => 'deployable',
+            'Scrapped' => 'archived',
+            'Donated' => 'archived',
+        ];
 
-        $admin = User::where('permissions->superuser', '1')->first() ?? User::factory()->firstAdmin()->create();
+        foreach ($mapping as $name => $type) {
+            $attrs = Statuslabel::getStatuslabelTypesForDB($type);
 
-        Statuslabel::factory()->rtd()->create([
-            'name' => 'Ready to Deploy',
-            'created_by' => $admin->id,
-        ]);
-
-        Statuslabel::factory()->pending()->create([
-            'name' => 'Pending',
-            'created_by' => $admin->id,
-        ]);
-
-        Statuslabel::factory()->archived()->create([
-            'name' => 'Archived',
-            'created_by' => $admin->id,
-        ]);
-
-        Statuslabel::factory()->outForDiagnostics()->create(['created_by' => $admin->id]);
-        Statuslabel::factory()->outForRepair()->create(['created_by' => $admin->id]);
-        Statuslabel::factory()->broken()->create(['created_by' => $admin->id]);
-        Statuslabel::factory()->lost()->create(['created_by' => $admin->id]);
+            // Use firstOrCreate to avoid duplicates (respects existing records)
+            Statuslabel::firstOrCreate(
+                ['name' => $name],
+                array_merge([
+                    // set a default admin creator where available
+                    'created_by' => 1,
+                    'notes' => null,
+                    'color' => null,
+                    'show_in_nav' => 0,
+                    'default_label' => 0,
+                ], $attrs)
+            );
+        }
     }
 }
+
