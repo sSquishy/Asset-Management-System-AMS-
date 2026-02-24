@@ -518,6 +518,7 @@ dir="{{ Helper::determineLanguageDirection() }}">
                                             <span class="badge">{{ (isset($total_undeployable_sidebar)) ? $total_undeployable_sidebar : '' }}</span>
                                         </a>
                                     </li>
+
                                     <li id="byod-sidenav-option"{!! (Request::query('status') == 'byod' ? ' class="active"' : '') !!}><a
                                                 href="{{ url('hardware?status=byod') }}">
                                             <x-icon type="x" class="text-red fa-fw" />
@@ -525,6 +526,7 @@ dir="{{ Helper::determineLanguageDirection() }}">
                                             <span class="badge">{{ (isset($total_byod_sidebar)) ? $total_byod_sidebar : '' }}</span>
                                         </a>
                                     </li>
+
                                     <li id="archived-sidenav-option"{!! (Request::query('status') == 'Archived' ? ' class="active"' : '') !!}><a
                                                 href="{{ url('hardware?status=Archived') }}">
                                             <x-icon type="x" class="text-red fa-fw" />
@@ -716,18 +718,26 @@ dir="{{ Helper::determineLanguageDirection() }}">
                                 </a>
 
                                 <ul class="treeview-menu">
-                                    @if(Gate::allows('view', App\Models\CustomField::class) || Gate::allows('view', App\Models\CustomFieldset::class))
-                                        <li {!! (request()->is('fields*') ? ' class="active"' : '') !!}>
-                                            <a href="{{ route('fields.index') }}">
-                                                {{ trans('admin/custom_fields/general.custom_fields') }}
-                                            </a>
-                                        </li>
-                                    @endif
-
                                     @can('view', \App\Models\Statuslabel::class)
                                         <li {!! (request()->is('statuslabels*') ? ' class="active"' : '') !!}>
                                             <a href="{{ route('statuslabels.index') }}">
                                                 {{ trans('general.status_labels') }}
+                                            </a>
+                                        </li>
+                                    @endcan
+
+                                    @can('view', \App\Models\Category::class)
+                                        <li {{!! (request()->is('categories') ? ' class="active"' : '') !!}}>
+                                            <a href="{{ route('categories.index') }}">
+                                                {{ trans('general.categories') }}
+                                            </a>
+                                        </li>
+                                    @endcan
+
+                                    @can('view', \App\Models\Depreciation::class)
+                                        <li  {{!! (request()->is('depreciations') ? ' class="active"' : '') !!}}>
+                                            <a href="{{ route('depreciations.index') }}">
+                                                {{ trans('general.depreciation') }}
                                             </a>
                                         </li>
                                     @endcan
@@ -740,13 +750,13 @@ dir="{{ Helper::determineLanguageDirection() }}">
                                         </li>
                                     @endcan
 
-                                    @can('view', \App\Models\Category::class)
-                                        <li {{!! (request()->is('categories') ? ' class="active"' : '') !!}}>
-                                            <a href="{{ route('categories.index') }}">
-                                                {{ trans('general.categories') }}
+                                    @if(Gate::allows('view', App\Models\CustomField::class) || Gate::allows('view', App\Models\CustomFieldset::class))
+                                        <li {!! (request()->is('fields*') ? ' class="active"' : '') !!}>
+                                            <a href="{{ route('fields.index') }}">
+                                                {{ trans('admin/custom_fields/general.custom_fields') }}
                                             </a>
                                         </li>
-                                    @endcan
+                                    @endif
 
                                     @can('view', \App\Models\Manufacturer::class)
                                         <li {{!! (request()->is('manufacturers') ? ' class="active"' : '') !!}}>
@@ -764,10 +774,10 @@ dir="{{ Helper::determineLanguageDirection() }}">
                                         </li>
                                     @endcan
 
-                                    @can('view', \App\Models\Department::class)
-                                        <li {{!! (request()->is('departments') ? ' class="active"' : '') !!}}>
-                                            <a href="{{ route('departments.index') }}">
-                                                {{ trans('general.departments') }}
+                                    @can('view', \App\Models\Company::class)
+                                        <li {{!! (request()->is('companies') ? ' class="active"' : '') !!}}>
+                                            <a href="{{ route('companies.index') }}">
+                                                {{ trans('general.companies') }}
                                             </a>
                                         </li>
                                     @endcan
@@ -780,21 +790,14 @@ dir="{{ Helper::determineLanguageDirection() }}">
                                         </li>
                                     @endcan
 
-                                    @can('view', \App\Models\Company::class)
-                                        <li {{!! (request()->is('companies') ? ' class="active"' : '') !!}}>
-                                            <a href="{{ route('companies.index') }}">
-                                                {{ trans('general.companies') }}
+                                    @can('view', \App\Models\Department::class)
+                                        <li {{!! (request()->is('departments') ? ' class="active"' : '') !!}}>
+                                            <a href="{{ route('departments.index') }}">
+                                                {{ trans('general.departments') }}
                                             </a>
                                         </li>
                                     @endcan
 
-                                    @can('view', \App\Models\Depreciation::class)
-                                        <li  {{!! (request()->is('depreciations') ? ' class="active"' : '') !!}}>
-                                            <a href="{{ route('depreciations.index') }}">
-                                                {{ trans('general.depreciation') }}
-                                            </a>
-                                        </li>
-                                    @endcan
                                 </ul>
                             </li>
                         @endcan

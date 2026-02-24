@@ -93,7 +93,9 @@
                                 <td>{{ $w['category'] }}</td>
                                 <td>{{ $w['assigned'] ?: $w['department'] }}</td>
                                 <td>{{ $w['warranty_date'] }}</td>
-                                <td style="font-weight:700">{{ $w['days_remaining'] }}</td>
+                                <td style="font-weight:700">
+                                    {{ ceil($w['days_remaining']) }} {{ ceil($w['days_remaining']) == 1 ? 'day' : 'days' }}
+                                </td>
                                 <td>{{ $w['supplier'] }}</td>
                             </tr>
                         @endforeach
