@@ -180,10 +180,10 @@
           <!-- Company -->
           @include ('partials.forms.edit.company-select', ['translated_name' => trans('general.company'), 'fieldname' => 'company_id'])
 
-          <!-- Order Number -->
+          <!-- Invoice Number -->
           <div class="form-group {{ $errors->has('order_number') ? ' has-error' : '' }}">
             <label for="order_number" class="col-md-3 control-label">
-              {{ trans('admin/hardware/form.order') }}
+              Invoice Number
             </label>
             <div class="col-md-7">
               <input class="form-control" type="text" maxlength="200" name="order_number" id="order_number" value="{{ old('order_number') }}" />

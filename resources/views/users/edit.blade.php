@@ -91,7 +91,7 @@
                               
                 <!-- Employee Number -->
                 <div class="form-group {{ $errors->has('employee_num') ? 'has-error' : '' }}">
-                    <label class="col-md-3 control-label" for="employee_num">{{ trans('general.employee_number') }}</label>
+                    <label class="col-md-3 control-label" for="employee_num">Employee ID</label>
                     <div class="col-md-6">
                         <input
                         class="form-control"

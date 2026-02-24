@@ -174,7 +174,7 @@ return [
     'language'                => 'Language',
     'last'                    => 'Last',
     'last_login'            => 'Last Login',
-    'last_name'             => 'Last Name',
+    'last_name'             => 'Surname',
     'firstname_lastname_display'    => 'First Name Last Name (Jane Smith)',
     'lastname_firstname_display'    => 'Last Name First Name (Smith Jane)',
     'name_display_format'    => 'Name Display Format',
