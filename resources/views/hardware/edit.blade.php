@@ -112,7 +112,7 @@
 
             <div id="optional_details" class="col-md-12" style="display:none">
                 @include ('partials.forms.edit.name', ['translated_name' => trans('admin/hardware/form.name')])
-                @include ('partials.forms.edit.warranty')
+                <!-- warranty moved to order information per request -->
                 @include ('partials.forms.edit.datepicker', ['translated_name' => trans('admin/hardware/form.expected_checkin'),'fieldname' => 'expected_checkin'])
                 @include ('partials.forms.edit.datepicker', ['translated_name' => trans('general.next_audit_date'),'fieldname' => 'next_audit_date', 'help_text' => trans('general.next_audit_date_help')])
                 <!-- byod checkbox -->
@@ -145,10 +145,8 @@
                 </legend>
 
                 <div id='order_details' class="col-md-12" style="display:none">
-                    @include ('partials.forms.edit.order_number')
-                    @include ('partials.forms.edit.datepicker', ['translated_name' => trans('general.purchase_date'),'fieldname' => 'purchase_date'])
-                    @include ('partials.forms.edit.datepicker', ['translated_name' => trans('admin/hardware/form.eol_date'),'fieldname' => 'asset_eol_date'])
-                    @include ('partials.forms.edit.supplier-select', ['translated_name' => trans('general.supplier'), 'fieldname' => 'supplier_id'])
+                                        @include ('partials.forms.edit.order_number')
+                                        @include ('partials.forms.edit.datepicker', ['translated_name' => 'Invoice Date','fieldname' => 'invoice_date'])
 
                     @php
                         $currency_type = null;
@@ -158,6 +156,42 @@
                     @endphp
 
                     @include ('partials.forms.edit.purchase_cost', ['currency_type' => $currency_type])
+
+                    @include ('partials.forms.edit.datepicker', ['translated_name' => trans('general.purchase_date'),'fieldname' => 'purchase_date'])
+
+                    @include ('partials.forms.edit.warranty')
+
+                    <!-- Warranty End Date (computed, read-only) -->
+                    <div class="form-group">
+                        <label for="warranty_end_date" class="col-md-3 control-label">Warranty End Date</label>
+                        <div class="col-md-7">
+                            <input class="form-control" type="text" id="warranty_end_date" name="warranty_end_date" value="{{ ($item->purchase_date && $item->warranty_months) ? \Carbon\Carbon::parse($item->purchase_date)->addMonths($item->warranty_months)->toDateString() : '' }}" readonly aria-readonly="true" />
+                        </div>
+                    </div>
+
+                    <div class="form-group {{ $errors->has('age_in_months') ? ' has-error' : '' }}">
+                        <label for="age_in_months" class="col-md-3 control-label">Age of Asset (months)</label>
+                        <div class="col-md-7">
+                            <input class="form-control" type="number" name="age_in_months" id="age_in_months" step="1" min="0" placeholder="Enter age in months" value="{{ old('age_in_months', $item->age_in_months ?? '') }}">
+                            {!! $errors->first('age_in_months', '<span class="alert-msg"><i class="fas fa-times"></i> :message</span>') !!}
+                        </div>
+                    </div>
+
+                    @include ('partials.forms.edit.datepicker', ['translated_name' => trans('admin/hardware/form.eol_date'),'fieldname' => 'asset_eol_date'])
+                    @include ('partials.forms.edit.supplier-select', ['translated_name' => trans('general.supplier'), 'fieldname' => 'supplier_id'])
+
+                                        <!-- PEZA Purchased -->
+                                        <div class="form-group {{ $errors->has('peza_purchased') ? ' has-error' : '' }}">
+                                            <label class="col-md-3 control-label">PEZA Purchased</label>
+                                            <div class="col-md-7">
+                                                <label class="radio-inline">
+                                                    <input type="radio" name="peza_purchased" value="1" {{ old('peza_purchased', $item->peza_purchased) == '1' ? 'checked' : '' }}> Yes
+                                                </label>
+                                                <label class="radio-inline">
+                                                    <input type="radio" name="peza_purchased" value="0" {{ old('peza_purchased', $item->peza_purchased) == '0' ? 'checked' : '' }}> No
+                                                </label>
+                                            </div>
+                                        </div>
 
                 </div> <!-- end order details -->
             </fieldset>
@@ -400,5 +434,74 @@
 
 
 
+</script>
+@stop
+
+@section('extra_scripts')
+<script nonce="{{ csrf_token() }}">
+(function($){
+    $(function(){
+        // Safe helpers
+        function parseYMDToDate(str){
+            if(!str) return null;
+            var m = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if(m){
+                return new Date(parseInt(m[1],10), parseInt(m[2],10)-1, parseInt(m[3],10));
+            }
+            var d = new Date(str);
+            return isNaN(d.getTime()) ? null : d;
+        }
+
+        function addMonthsSafe(date, months){
+            try{
+                var y = date.getFullYear();
+                var m = date.getMonth() + months;
+                var day = date.getDate();
+                var targetYear = y + Math.floor(m / 12);
+                var targetMonth = m % 12;
+                if (targetMonth < 0) { targetMonth += 12; targetYear -= 1; }
+                var daysInTarget = new Date(targetYear, targetMonth + 1, 0).getDate();
+                var dayToUse = Math.min(day, daysInTarget);
+                return new Date(targetYear, targetMonth, dayToUse);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function formatYMD(date){
+            if(!date) return '';
+            var yyyy = date.getFullYear();
+            var mm = String(date.getMonth()+1).padStart(2,'0');
+            var dd = String(date.getDate()).padStart(2,'0');
+            return yyyy + '-' + mm + '-' + dd;
+        }
+
+        function updateWarrantyEnd(){
+            try{
+                var pdVal = $('#purchase_date').val ? $('#purchase_date').val() : null;
+                var wmVal = $('#warranty_months').val ? $('#warranty_months').val() : null;
+                var pd = parseYMDToDate(pdVal);
+                var wm = parseInt(wmVal, 10);
+                if(!pd || isNaN(wm)){
+                    $('#warranty_end_date').val('');
+                    return;
+                }
+                var end = addMonthsSafe(pd, wm);
+                $('#warranty_end_date').val(end ? formatYMD(end) : '');
+            } catch (e) {
+                console.warn('Warranty end calculation error', e);
+                try{ $('#warranty_end_date').val(''); } catch(e2){}
+            }
+        }
+
+
+        // wire up events safely
+        $(document).on('input change', '#purchase_date, #warranty_months', updateWarrantyEnd);
+
+        // initialise on page load
+        updateWarrantyEnd();
+
+    });
+})(jQuery);
 </script>
 @stop

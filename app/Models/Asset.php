@@ -81,6 +81,7 @@ class Asset extends Depreciable
 
     protected $casts = [
         'purchase_date' => 'date',
+        'invoice_date' => 'date',
         'eol_explicit' => 'boolean',
         'last_checkout' => 'datetime',
         'last_checkin' => 'datetime',
@@ -93,6 +94,8 @@ class Asset extends Depreciable
         'location_id'    => 'integer',
         'rtd_company_id' => 'integer',
         'supplier_id'    => 'integer',
+        'peza_purchased' => 'boolean',
+        'age_in_months'  => 'integer',
         'created_at'     => 'datetime',
         'updated_at'   => 'datetime',
         'deleted_at'  => 'datetime',
@@ -113,12 +116,14 @@ class Asset extends Depreciable
         'location_id'       => ['nullable', 'exists:locations,id', 'fmcs_location'],
         'rtd_location_id'   => ['nullable', 'exists:locations,id', 'fmcs_location'],
         'purchase_date'     => ['nullable', 'date', 'date_format:Y-m-d'],
+        'age_in_months'     => ['nullable', 'integer', 'min:0', 'max:999'],
         'serial'            => ['nullable', 'string', 'unique_undeleted:assets,serial'],
         'purchase_cost'     => ['nullable', 'numeric', 'gte:0', 'max:99999999999999999.99'],
         'supplier_id'       => ['nullable', 'exists:suppliers,id'],
         'asset_eol_date'    => ['nullable', 'date'],
         'eol_explicit'      => ['nullable', 'boolean'],
         'byod'              => ['nullable', 'boolean'],
+        
         'order_number'      => ['nullable', 'string', 'max:191'],
         'notes'             => ['nullable', 'string', 'max:65535'],
         'assigned_to'   => ['nullable', 'integer', 'required_with:assigned_type'],
@@ -159,6 +164,9 @@ class Asset extends Depreciable
         'byod',
         'asset_eol_date',
         'eol_explicit',
+        'invoice_date',
+        'peza_purchased',
+        'age_in_months',
         'last_audit_date',
         'next_audit_date',
         'last_checkin',
@@ -284,6 +292,8 @@ class Asset extends Depreciable
         );
     }
 
+    
+
     protected function warrantyExpiresFormattedDate(): Attribute
     {
 
@@ -306,6 +316,13 @@ class Asset extends Depreciable
             get: fn(mixed $value, array $attributes) => $this->warrantyExpires ? Carbon::parse($this->warrantyExpires)->diffForHumans() : null,
         );
 
+    }
+
+    protected function ageInMonths(): Attribute
+    {
+        return Attribute:: make(
+            get: fn(mixed $value, array $attributes) => isset($attributes['age_in_months']) && $attributes['age_in_months'] !== null ? (int) $attributes['age_in_months'] : null,
+        );
     }
 
     protected function eolDate(): Attribute
