@@ -219,6 +219,154 @@
                             }
                         });
 
+                        // Move category filter button into the columns-right .btn-group.pull-right before the fullscreen button
+                        (function() {
+                            function placeCatBtn(tableId) {
+                                if (!tableId) return false;
+                                var selector = '[data-target-table="#' + tableId + '"]';
+                                var $catBtn = $(selector).first();
+                                if (!$catBtn || !$catBtn.length) return false;
+                                var $wrapper = $('#' + tableId).closest('.bootstrap-table');
+                                if (!$wrapper || !$wrapper.length) return false;
+                                var tried = [
+                                    '.fixed-table-toolbar .columns-right .btn-group.pull-right',
+                                    '.fixed-table-toolbar .columns-right .pull-right .btn-group',
+                                    '.fixed-table-toolbar .btn-group.pull-right',
+                                    '.fixed-table-toolbar .pull-right .btn-group',
+                                    '.fixed-table-toolbar .btn-group'
+                                ];
+                                var $rightGroup = $();
+                                for (var i = 0; i < tried.length; i++) {
+                                    $rightGroup = $wrapper.find(tried[i]).first();
+                                    if ($rightGroup && $rightGroup.length) break;
+                                }
+                                if (!$rightGroup || !$rightGroup.length) return false;
+                                var $fullscreen = $rightGroup.find('.tableButton').filter(function() {
+                                    return $(this).find('.fa-expand').length || $(this).find('.fa-expand-arrows-alt').length;
+                                }).first();
+                                if ($fullscreen && $fullscreen.length) {
+                                    $catBtn.detach().insertAfter($fullscreen);
+                                } else {
+                                    $catBtn.detach().appendTo($rightGroup);
+                                }
+                                $catBtn.addClass('tableButton');
+                                return true;
+                            }
+
+                            try {
+                                var $currentTable = $(this);
+                                var tableId = $currentTable && $currentTable.attr ? $currentTable.attr('id') : null;
+                                if (tableId) {
+                                    var moved = placeCatBtn(tableId);
+                                    if (!moved) {
+                                        // retry a few times in case bootstrap-table moves toolbar later
+                                        for (var attempt = 1; attempt <= 6 && !moved; attempt++) {
+                                            (function(attemptNo) {
+                                                setTimeout(function() {
+                                                    moved = placeCatBtn(tableId) || moved;
+                                                }, attemptNo * 100);
+                                            })(attempt);
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                // ignore
+                            }
+                            // Reorder right-side toolbar buttons for specific dashboard table
+                            (function() {
+                                function reorderToolbar(tableId) {
+                                    if (!tableId) return false;
+                                    var $wrapper = $('#' + tableId).closest('.bootstrap-table');
+                                    if (!$wrapper || !$wrapper.length) return false;
+                                    var tried = [
+                                        '.fixed-table-toolbar .columns-right .btn-group.pull-right',
+                                        '.fixed-table-toolbar .columns-right .pull-right .btn-group',
+                                        '.fixed-table-toolbar .btn-group.pull-right',
+                                        '.fixed-table-toolbar .pull-right .btn-group',
+                                        '.fixed-table-toolbar .btn-group'
+                                    ];
+                                    var $rightGroup = $();
+                                    for (var i = 0; i < tried.length; i++) {
+                                        $rightGroup = $wrapper.find(tried[i]).first();
+                                        if ($rightGroup && $rightGroup.length) break;
+                                    }
+                                    if (!$rightGroup || !$rightGroup.length) return false;
+
+                                    // find buttons by icon selectors
+                                    var $columnsBtn = $rightGroup.find('i.fa-columns').closest('button, a');
+                                    var $refreshBtn = $rightGroup.find('i[class*="fa-sync"]').closest('button, a');
+                                    var $btnExportBtn = $rightGroup.find('i[class*="fa-file-csv"]').closest('button, a');
+                                    var $exportBtn = $rightGroup.find('i[class*="fa-download"]').closest('button, a');
+                                    var $printBtn = $rightGroup.find('i.fa-print').closest('button, a');
+                                    var $fullscreenBtn = $rightGroup.find('i[class*="fa-expand"]').closest('button, a');
+                                    var $catBtn = $('[data-target-table="#' + tableId + '"]').first();
+
+                                    var order = [$columnsBtn, $refreshBtn, $btnExportBtn, $exportBtn, $printBtn, $fullscreenBtn, $catBtn];
+                                    var placedAny = false;
+                                    for (var j = 0; j < order.length; j++) {
+                                        var $el = order[j];
+                                        if ($el && $el.length) {
+                                            $el.detach().appendTo($rightGroup);
+                                            placedAny = true;
+                                        }
+                                    }
+                                    return placedAny;
+                                }
+
+                                try {
+                                    var $currentTable2 = $(this);
+                                    var tableId2 = $currentTable2 && $currentTable2.attr ? $currentTable2.attr('id') : null;
+                                    if (tableId2) {
+                                        var done = reorderToolbar(tableId2);
+                                        if (!done) {
+                                            for (var a = 1; a <= 6 && !done; a++) {
+                                                (function(attemptNo) {
+                                                    setTimeout(function() {
+                                                        done = reorderToolbar(tableId2) || done;
+                                                    }, attemptNo * 120);
+                                                })(a);
+                                            }
+                                        }
+                                    }
+                                } catch (e) {
+                                    // ignore
+                                }
+                            })();
+
+                        // Ensure Category Filter is immediately left of the fullscreen button in the right-side group
+                        (function ensureCatBeforeFullscreen() {
+                            var tries = 0;
+                            function tryPlace() {
+                                var $table = $('#dashPredictedReplacements');
+                                var $catBtn = $('[data-target-table="#dashPredictedReplacements"]').first();
+                                if (!$table.length || !$catBtn.length) {
+                                    if (++tries < 8) setTimeout(tryPlace, 150);
+                                    return;
+                                }
+                                var $wrapper = $table.closest('.bootstrap-table');
+                                if (!$wrapper || !$wrapper.length) {
+                                    if (++tries < 8) setTimeout(tryPlace, 150);
+                                    return;
+                                }
+                                var $rightGroup = $wrapper.find('.fixed-table-toolbar .columns-right .btn-group.pull-right, .fixed-table-toolbar .btn-group.pull-right, .fixed-table-toolbar .columns-right .btn-group, .fixed-table-toolbar .pull-right .btn-group').first();
+                                if (!$rightGroup || !$rightGroup.length) {
+                                    if (++tries < 8) setTimeout(tryPlace, 150);
+                                    return;
+                                }
+
+                                var $fullscreen = $rightGroup.find('.tableButton').filter(function() {
+                                    return $(this).find('.fa-expand').length || $(this).find('.fa-expand-arrows-alt').length || $(this).find('.fa-expand-arrows').length;
+                                }).first();
+                                if ($fullscreen && $fullscreen.length) {
+                                    $catBtn.detach().insertAfter($fullscreen);
+                                } else {
+                                    $rightGroup.append($catBtn);
+                                }
+                                $catBtn.addClass('tableButton');
+                            }
+                            tryPlace();
+                        })();
+                        })();
                     },
                     formatNoMatches: function() {
                         return '{{ trans('table.no_matching_records') }}';
@@ -358,13 +506,13 @@
 
             btnCategoryFilter: {
                 text: '{{ trans('Category Filter') }}',
-                icon: 'fa-solid fa-tags',
+                icon: 'fa fa-tags',
                 event() {
                     // handled via delegated click handler to determine the correct table
                 },
                 attributes: {
                     title: '{{ trans('Category Filter') }}',
-                    class: 'btn-primary btn-category-filter',
+                    class: 'tableButton btn btn-primary hidden-print btn-category-filter',
                 }
             },
 
@@ -2140,10 +2288,42 @@
                     top: top
                 });
 
-                // Figure out the related table
-                var $bootstrapContainer = $btn.closest('.bootstrap-table');
-                var $table = $bootstrapContainer.find('table.snipe-table').first();
-                $menu.data('targetTable', $table);
+                // Figure out the related table or list container. Prefer explicit data attributes
+                // because bootstrap-table may relocate toolbar DOM elements.
+                var $table = $();
+                var targetSelector = $btn.attr('data-target-table') || $btn.data('target-table');
+                if (targetSelector) {
+                    try {
+                        $table = $(targetSelector);
+                    } catch (e) {
+                        $table = $();
+                    }
+                }
+
+                // Fallback: try to find a nearby .bootstrap-table wrapper
+                if (!$table || !$table.length) {
+                    var $bootstrapContainer = $btn.closest('.bootstrap-table');
+                    if ($bootstrapContainer && $bootstrapContainer.length) {
+                        $table = $bootstrapContainer.find('table.snipe-table').first();
+                    }
+                }
+
+                $menu.data('targetTable', $table || $());
+
+                // Also detect a generic list container. Prefer explicit data attribute.
+                var $listContainer = $();
+                var listSelector = $btn.attr('data-target-list') || $btn.data('target-list');
+                if (listSelector) {
+                    try {
+                        $listContainer = $(listSelector);
+                    } catch (e) {
+                        $listContainer = $();
+                    }
+                }
+                if ((!$listContainer || !$listContainer.length) && $bootstrapContainer && $bootstrapContainer.length) {
+                    $listContainer = $bootstrapContainer.find('.list-group, .list-group-flush').first();
+                }
+                $menu.data('targetList', $listContainer || $());
 
                 // Pre-select checkboxes based on current URL query (if present).
                 // If no categories are specified in the URL, default to "All Categories" (toggle ON,
@@ -2190,14 +2370,72 @@
                         selected.push($(this).val());
                     });
                     var $t = $menu.data('targetTable');
-                    if (!$t || !$t.length) {
+                    var $list = $menu.data('targetList');
+                    if ((!$t || !$t.length) && (!$list || !$list.length)) {
                         return;
                     }
-                    var query = {};
-                    if (selected.length) query.category_id = selected;
-                    $t.bootstrapTable('refresh', {
-                        query: query
-                    });
+
+                    // If the table is backed by a remote URL, pass the selected categories as query params
+                    try {
+                        var opts = $t.bootstrapTable('getOptions') || {};
+                        var remoteUrl = opts && (opts.url || $t.data('url'));
+                    } catch (e) {
+                        var remoteUrl = $t.data('url');
+                    }
+
+                    if (remoteUrl) {
+                        var query = {};
+                        if (selected.length) query.category_id = selected;
+                        $t.bootstrapTable('refresh', {
+                            query: query
+                        });
+                        return;
+                    }
+
+                    // Client-side table (static HTML/dashboard widgets) or list: show/hide
+                    // elements based on data-category-id attribute. This preserves the
+                    // visual widget when it's not backed by remote AJAX.
+                    if ($t && $t.length) {
+                        var $rows = $t.find('tbody tr');
+                        if ($rows.length) {
+                            if (selected.length) {
+                                var selSet = {};
+                                for (var si = 0; si < selected.length; si++) selSet[String(selected[si])] = true;
+                                $rows.each(function() {
+                                    var $r = $(this);
+                                    var cid = $r.data('category-id');
+                                    if (cid !== undefined && cid !== null && selSet[String(cid)]) {
+                                        $r.show();
+                                    } else {
+                                        $r.hide();
+                                    }
+                                });
+                            } else {
+                                $rows.show();
+                            }
+                        }
+                    }
+
+                    // If there's a list container (e.g., recommended assets list), filter its children
+                    if ($list && $list.length) {
+                        var $items = $list.children();
+                        if (selected.length) {
+                            var selSet2 = {};
+                            for (var s2 = 0; s2 < selected.length; s2++) selSet2[String(selected[s2])] = true;
+                            $items.each(function() {
+                                var $it = $(this);
+                                var cid2 = $it.data('category-id') || $it.find('[data-category-id]').data('category-id');
+                                if (cid2 !== undefined && cid2 !== null && selSet2[String(cid2)]) {
+                                    $it.show();
+                                } else {
+                                    $it.hide();
+                                }
+                            });
+                        } else {
+                            $items.show();
+                        }
+                    }
+                    return;
                 }
 
                 $menu.find('.category-filter-checkbox').off('change').on('change', function() {

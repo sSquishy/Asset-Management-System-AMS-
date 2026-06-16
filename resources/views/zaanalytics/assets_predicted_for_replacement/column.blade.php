@@ -70,6 +70,7 @@
             'id' => $a->id,
             'name' => $a->name ?: ($a->asset_tag ?: 'Asset #' . $a->id),
             'category' => optional($a->category)->name ?: optional(optional($a->model)->category)->name ?: '',
+            'category_id' => optional($a->category)->id ?: optional(optional($a->model)->category)->id ?: null,
             'age_years' => $ageYears,
             'expected_life_years' => round($expected, 1),
             'remaining_years' => $remaining,
@@ -94,12 +95,17 @@
         </div>
     </div>
     <div class="box-body">
-        <div class="table-responsive">
+        <div class="table-responsive bootstrap-table">
+            <div id="dashPredictedReplacementsToolbar" class="btn-group" role="group" style="margin-left:auto;margin-bottom:8px;">
+                <button type="button" class="tableButton btn btn-primary hidden-print btn-category-filter" data-target-table="#dashPredictedReplacements" title="{{ trans('Category Filter') }}">
+                    <i class="fa fa-tags"></i>
+                </button>
+            </div>
             @if ($predicted->isEmpty())
                 <div class="text-muted">No assets with replacement predictions available.</div>
             @else
                 <table id="dashPredictedReplacements" class="table table-striped snipe-table" data-toggle="table"
-                    data-fixed-table-toolbar="true" data-cookie-id-table="dashPredictedReplacements" data-height="500"
+                    data-fixed-table-toolbar="true" data-toolbar="#dashPredictedReplacementsToolbar" data-cookie-id-table="dashPredictedReplacements" data-height="500"
                     data-pagination="false">
                     <thead>
                         <tr>
@@ -114,7 +120,7 @@
                     </thead>
                     <tbody>
                         @foreach ($predicted as $p)
-                            <tr>
+                            <tr data-category-id="{{ $p['category_id'] }}">
                                 <td>{{ $p['name'] }}</td>
                                 <td>{{ $p['category'] }}</td>
                                 <td>{{ $p['age_years'] }}</td>
