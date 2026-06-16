@@ -1,31 +1,45 @@
 @php
-    // Query maintenance records to get failure counts and last failure date per asset
-    $failureRows = \App\Models\Maintenance::select(
-        'asset_id',
-        \DB::raw('count(*) as failures'), // Count number of failures per asset
-        \DB::raw('max(start_date) as last_failure'), // Most recent failure date
-    )
-        ->groupBy('asset_id')
-        ->orderByDesc('failures') // Order by most failures
-        ->take(6) // Limit to top 6 assets
-        ->get();
-
-    // Build array of asset details for display
+    // Query maintenance records aggregated by asset CATEGORY instead of per-asset.
+    // We join maintenances -> assets -> models -> categories to get counts per category.
+    try {
+        $failureRows = \App\Models\Maintenance::select(
+            'categories.id as category_id',
+            'categories.name as category_name',
+            \DB::raw('count(*) as failures'),
+            \DB::raw('count(DISTINCT assets.id) as assets_count'),
+            \DB::raw('max(start_date) as last_failure'),
+        )
+            ->join('assets', 'maintenances.asset_id', '=', 'assets.id')
+            ->join('models', 'assets.model_id', '=', 'models.id')
+            ->join('categories', 'models.category_id', '=', 'categories.id')
+            ->where('categories.category_type', 'asset')
+            ->groupBy('categories.id', 'categories.name')
+            ->orderByDesc('failures')
+            ->take(6)
+            ->get();
+    } catch (\Exception $e) {
+        // If DB is not reachable or query fails, return an empty collection so the card shows a friendly message.
+        $failureRows = collect();
+    }
+    // Build array of category details for display (keeps the same keys expected by the card)
     $failureItems = [];
     foreach ($failureRows as $fr) {
-        // Fetch asset and its model
-        $asset = \App\Models\Asset::with('model')->find($fr->asset_id);
-        if (!$asset) {
-            continue;
-        }
-        // Prepare display data for each asset
+        $label = $fr->category_name ?: 'Category #' . $fr->category_id;
+        $assetsCount = isset($fr->assets_count) ? (int) $fr->assets_count : 0;
+        $last = $fr->last_failure ? \Carbon\Carbon::parse($fr->last_failure)->toDateString() : null;
+
         $failureItems[] = [
-            'label' => $asset->name ?: $asset->asset_tag ?: 'Asset #' . $asset->id, // Asset name or tag
-            'model' => $asset->model->name ?? ($asset->model_number ?? ''), // Model name or number
-            'count' => (int) $fr->failures, // Number of failures
-            'last' => $fr->last_failure ? \Carbon\Carbon::parse($fr->last_failure)->toDateString() : null, // Last failure date
+            // Card expects keys: label, model, count, last
+            'label' => $label,
+            // Use the `model` slot to show how many assets are in the category
+            'model' => $assetsCount . ' assets',
+            'count' => (int) $fr->failures,
+            'last' => $last,
         ];
     }
 @endphp
 
-@include('components.assets-most-failures-card', ['items' => $failureItems])
+@include('components.assets-most-failures-card', [
+    'items' => $failureItems,
+    'title' => 'Categories with Most Failures',
+])
