@@ -2146,7 +2146,8 @@
                 $menu.data('targetTable', $table);
 
                 // Pre-select checkboxes based on current URL query (if present).
-                // If no categories are specified in the URL, default to selecting all.
+                // If no categories are specified in the URL, default to "All Categories" (toggle ON,
+                // individual checkboxes OFF) so "All" is mutually exclusive with individuals.
                 try {
                     var urlParams = new URLSearchParams(window.location.search);
                     var selectedFromUrl = [];
@@ -2160,22 +2161,18 @@
                             var val = $(this).val();
                             $(this).prop('checked', (selectedFromUrl.indexOf(val) !== -1));
                         });
+                        // When specific categories are provided, ensure Toggle All is OFF
+                        $menu.find('.category-filter-toggle').prop('checked', false);
                     } else {
-                        // No selection in URL: default to all categories checked
-                        $menu.find('.category-filter-checkbox').prop('checked', true);
+                        // No selection in URL: default to All Categories selected -> toggle ON, individuals OFF
+                        $menu.find('.category-filter-checkbox').prop('checked', false);
+                        $menu.find('.category-filter-toggle').prop('checked', true);
                     }
                 } catch (e) {
-                    // ignore URL parsing errors; default to all selected
-                    $menu.find('.category-filter-checkbox').prop('checked', true);
+                    // ignore URL parsing errors; default to All Categories
+                    $menu.find('.category-filter-checkbox').prop('checked', false);
+                    $menu.find('.category-filter-toggle').prop('checked', true);
                 }
-
-                // Update toggle-all state (reflect whether visible items are all checked)
-                var allChecked = $menu.find('.category-list label:visible').find('.category-filter-checkbox')
-                    .length &&
-                    $menu.find('.category-list label:visible').find('.category-filter-checkbox:checked')
-                    .length ===
-                    $menu.find('.category-list label:visible').find('.category-filter-checkbox').length;
-                $menu.find('.category-filter-toggle').prop('checked', !!allChecked);
 
                 // Wire up search
                 $menu.find('.category-filter-search').off('keyup').on('keyup', function() {
@@ -2204,22 +2201,28 @@
                 }
 
                 $menu.find('.category-filter-checkbox').off('change').on('change', function() {
-                    // Update toggle-all state for visible items
-                    var $visible = $menu.find('.category-list label:visible').find(
-                        '.category-filter-checkbox');
-                    var allVisibleChecked = $visible.length && $visible.filter(':checked').length ===
-                        $visible.length;
-                    $menu.find('.category-filter-toggle').prop('checked', !!allVisibleChecked);
+                    // If any individual category is selected, Toggle All must be unchecked (mutually exclusive).
+                    // If none are selected, Toggle All becomes checked and we show all assets.
+                    var checkedCount = $menu.find('.category-filter-checkbox:checked').length;
+                    if (checkedCount > 0) {
+                        $menu.find('.category-filter-toggle').prop('checked', false);
+                    } else {
+                        $menu.find('.category-filter-toggle').prop('checked', true);
+                    }
 
                     clearTimeout($menu.data('refreshTimer'));
                     $menu.data('refreshTimer', setTimeout(doRefresh, 120));
                 });
 
-                // Toggle-all (only toggle visible items so search filtering is respected)
+                // Toggle-all (represents "All Categories"). When checked, clear any individual selections
+                // so "All" is mutually exclusive and show all assets. When unchecked, do nothing and allow
+                // the user to pick individual categories.
                 $menu.find('.category-filter-toggle').off('change').on('change', function() {
                     var check = $(this).is(':checked');
-                    $menu.find('.category-list label:visible').find('.category-filter-checkbox').prop(
-                        'checked', check);
+                    if (check) {
+                        // All Categories selected: clear individual selections
+                        $menu.find('.category-filter-checkbox').prop('checked', false);
+                    }
                     clearTimeout($menu.data('refreshTimer'));
                     $menu.data('refreshTimer', setTimeout(doRefresh, 80));
                 });
