@@ -69,7 +69,7 @@
         $predicted->push([
             'id' => $a->id,
             'name' => $a->name ?: ($a->asset_tag ?: 'Asset #' . $a->id),
-            'category' => optional($a->category)->name ?: optional($a->model)->name ?: '',
+            'category' => optional($a->category)->name ?: optional(optional($a->model)->category)->name ?: '',
             'age_years' => $ageYears,
             'expected_life_years' => round($expected, 1),
             'remaining_years' => $remaining,

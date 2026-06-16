@@ -41,7 +41,7 @@
             $warrantySoon->push([
                 'asset_tag' => $a->asset_tag ?: '',
                 'name' => $a->name ?: 'Asset #' . $a->id,
-                'category' => optional($a->category)->name ?: optional($a->model)->name ?: '',
+                'category' => optional($a->category)->name ?: optional(optional($a->model)->category)->name ?: '',
                 'assigned' => $assigned,
                 'department' => $department,
                 'warranty_date' => $expiry->toDateString(),

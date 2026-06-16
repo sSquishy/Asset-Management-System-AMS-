@@ -47,9 +47,7 @@
         $lastDate = null;
         $lastType = null;
         if ($lastMaint) {
-            $lastDate = $lastMaint->start_date
-                ? \Carbon\Carbon::parse($lastMaint->start_date)->toDateString()
-                : null;
+            $lastDate = $lastMaint->start_date ? \Carbon\Carbon::parse($lastMaint->start_date)->toDateString() : null;
             $lastType = $lastMaint->asset_maintenance_type ?? null;
             // Mark as recent failure if within last 180 days
             $recentFailure = $lastMaint->start_date
@@ -71,7 +69,7 @@
         $predicted->push([
             'id' => $a->id,
             'name' => $a->name ?: ($a->asset_tag ?: 'Asset #' . $a->id),
-            'category' => optional($a->category)->name ?: optional($a->model)->name ?: '',
+            'category' => optional($a->category)->name ?: optional(optional($a->model)->category)->name ?: '',
             'age_years' => $ageYears,
             'expected_life_years' => round($expected, 1),
             'remaining_years' => $remaining,
@@ -100,9 +98,9 @@
             @if ($predicted->isEmpty())
                 <div class="text-muted">No assets with replacement predictions available.</div>
             @else
-                <table id="dashPredictedReplacements" class="table table-striped snipe-table"
-                    data-toggle="table" data-fixed-table-toolbar="true"
-                    data-cookie-id-table="dashPredictedReplacements" data-height="500" data-pagination="false">
+                <table id="dashPredictedReplacements" class="table table-striped snipe-table" data-toggle="table"
+                    data-fixed-table-toolbar="true" data-cookie-id-table="dashPredictedReplacements" data-height="500"
+                    data-pagination="false">
                     <thead>
                         <tr>
                             <th>Asset Name</th>
@@ -126,7 +124,8 @@
                                 <td>
                                     @if ($p['recent_failure'])
                                         <span class="text-danger">Recent failure
-                                            ({{ $p['last_maintenance'] }})</span>
+                                            ({{ $p['last_maintenance'] }})
+                                        </span>
                                     @elseif($p['last_maintenance'])
                                         <span class="text-muted">Last serviced
                                             {{ $p['last_maintenance'] }}</span>
