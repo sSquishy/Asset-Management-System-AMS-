@@ -168,11 +168,14 @@
         function applyLocalFilter(startVal, endVal) {
             if (!listEl) return;
             var rows = listEl.querySelectorAll('[data-failure-start]');
-            // If no start/end provided, show all
+            var prevScroll = listEl.scrollTop;
+            // If no start/end provided, show all (use flex to preserve layout)
             if (!startVal || !endVal) {
                 rows.forEach(function(r) {
-                    r.style.display = '';
+                    r.style.display = 'flex';
                 });
+                // restore scroll
+                listEl.scrollTop = prevScroll;
                 return;
             }
             // Compare as YYYY-MM-DD strings (lexicographic safe)
@@ -183,11 +186,13 @@
                     return;
                 }
                 if (v >= startVal && v <= endVal) {
-                    r.style.display = '';
+                    r.style.display = 'flex';
                 } else {
                     r.style.display = 'none';
                 }
             });
+            // restore scroll
+            listEl.scrollTop = prevScroll;
         }
 
         if (btn) {
