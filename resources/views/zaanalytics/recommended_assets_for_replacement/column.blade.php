@@ -69,7 +69,8 @@
         $predicted->push([
             'id' => $a->id,
             'name' => $a->name ?: ($a->asset_tag ?: 'Asset #' . $a->id),
-            'category' => optional($a->category)->name ?: optional($a->model)->name ?: '',
+            'category' => optional($a->category)->name ?: optional(optional($a->model)->category)->name ?: '',
+            'category_id' => optional($a->category)->id ?: optional(optional($a->model)->category)->id ?: null,
             'age_years' => $ageYears,
             'expected_life_years' => round($expected, 1),
             'remaining_years' => $remaining,
@@ -159,11 +160,12 @@
     </div>
     <div class="box-body" style="padding:8px;">
         <div style="max-height:500px; overflow-y:auto;">
+            <!-- Category filter removed for this widget -->
             <ul class="list-group" style="margin-bottom:0;">
                 @forelse($recommended as $r)
                     <li class="list-group-item"
                         style="display:flex;align-items:center;justify-content:space-between;padding:12px 10px; @if ($r['priority'] == 'High') border-left:4px solid #d9534f; box-shadow: inset 0 0 0 1px rgba(217,83,79,0.04); @else border-left:4px solid transparent; @endif">
-                        <div style="flex:1;min-width:0;padding-right:10px;">
+                            <div style="flex:1;min-width:0;padding-right:10px;" data-category-id="{{ $r['category_id'] }}">
                             <div
                                 style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;">
                                 {{ $r['name'] }}</div>

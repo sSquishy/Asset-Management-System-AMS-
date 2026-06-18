@@ -41,7 +41,8 @@
             $warrantySoon->push([
                 'asset_tag' => $a->asset_tag ?: '',
                 'name' => $a->name ?: 'Asset #' . $a->id,
-                'category' => optional($a->category)->name ?: optional($a->model)->name ?: '',
+                'category' => optional($a->category)->name ?: optional(optional($a->model)->category)->name ?: '',
+                'category_id' => optional($a->category)->id ?: optional(optional($a->model)->category)->id ?: null,
                 'assigned' => $assigned,
                 'department' => $department,
                 'warranty_date' => $expiry->toDateString(),
@@ -65,7 +66,14 @@
         </div>
     </div>
     <div class="box-body">
-        <div class="table-responsive">
+        <div class="table-responsive bootstrap-table">
+            <div class="table-toolbar" style="text-align:right;margin-bottom:8px;">
+                <div class="btn-group">
+                    <button type="button" class="tableButton btn btn-primary hidden-print btn-category-filter" title="{{ trans('Category Filter') }}">
+                        <i class="fa fa-tags"></i>
+                    </button>
+                </div>
+            </div>
             <table id="dashWarrantySoon" class="table table-striped snipe-table" data-toggle="table"
                 data-fixed-table-toolbar="true" data-cookie-id-table="dashWarrantySoon" data-height="500"
                 data-search="true" data-pagination="false">
@@ -87,7 +95,7 @@
                         </tr>
                     @else
                         @foreach ($warrantySoon as $w)
-                            <tr>
+                            <tr data-category-id="{{ $w['category_id'] }}">
                                 <td>{{ $w['asset_tag'] }}</td>
                                 <td>{{ $w['name'] }}</td>
                                 <td>{{ $w['category'] }}</td>
