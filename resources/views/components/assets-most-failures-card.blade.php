@@ -20,7 +20,7 @@
         <div style="font-size:14px; color:{{ $textColor }}; font-weight:700">{{ $title }}</div>
         <div style="display:flex; align-items:center; gap:8px; position:relative">
             <button id="{{ $id }}_filter_btn" type="button" aria-expanded="false" aria-haspopup="dialog"
-                aria-label="Filter by date" title="Filter by date"
+                aria-label="Filter by category" title="Filter by category"
                 style="display:inline-flex; align-items:center; gap:8px; background:transparent; border:none; padding:6px; border-radius:6px; cursor:pointer; color:{{ $textColor }};">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
                     aria-hidden="true">
@@ -34,13 +34,28 @@
 
             <div id="{{ $id }}_filter_dropdown" role="dialog" aria-modal="false"
                 style="position:absolute; right:0; top:42px; z-index:50; display:none; background:{{ $bg }}; border-radius:8px; padding:12px; box-shadow:0 6px 18px rgba(0,0,0,0.12); width:320px;">
-                <div style="font-size:14px; font-weight:700; margin-bottom:8px; color:{{ $textColor }}">Select date
-                    range</div>
-                <div style="display:flex; gap:8px; margin-bottom:8px;">
-                    <input id="{{ $id }}_start" type="date"
-                        style="flex:1; padding:8px; border-radius:6px; border:1px solid #e6e9ef; background:transparent; color:{{ $textColor }};">
-                    <input id="{{ $id }}_end" type="date"
-                        style="flex:1; padding:8px; border-radius:6px; border:1px solid #e6e9ef; background:transparent; color:{{ $textColor }};">
+                <div style="font-size:14px; font-weight:700; margin-bottom:8px; color:{{ $textColor }}">Select
+                    category</div>
+                <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:8px;">
+                    <input id="{{ $id }}_category_search" type="search" placeholder="Search"
+                        style="padding:8px; border-radius:6px; border:1px solid #e6e9ef; background:transparent; color:{{ $textColor }};">
+                    <div id="{{ $id }}_category_list"
+                        style="max-height:220px; overflow:auto; border-radius:6px; padding:6px; border:1px solid #e6e9ef; background:transparent;">
+                        <label style="display:flex; align-items:center; gap:8px; padding:6px;">
+                            <input id="{{ $id }}_toggle_all" type="checkbox" style="width:16px;height:16px">
+                            <span style="font-size:13px; color:{{ $textColor }}">Select All</span>
+                        </label>
+                        @php $cats = $categories ?? []; @endphp
+                        @foreach ($cats as $c)
+                            <label data-cat-name="{{ $c['name'] }}"
+                                style="display:flex; align-items:center; gap:8px; padding:6px;">
+                                <input type="checkbox" class="filter-cat-checkbox" data-cat-id="{{ $c['id'] }}"
+                                    value="{{ $c['id'] }}" style="width:16px;height:16px">
+                                <span
+                                    style="font-size:13px; color:{{ $textColor }}; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; flex:1">{{ $c['name'] }}</span>
+                            </label>
+                        @endforeach
+                    </div>
                 </div>
                 <div style="display:flex; justify-content:space-between; gap:8px; margin-top:6px;">
                     <button id="{{ $id }}_clear" type="button"
@@ -76,7 +91,8 @@
                     }
                     $barPct = round(($it['count'] / $max) * 100);
                 @endphp
-                <div data-failure-start="{{ $failureStart }}" style="display:flex; align-items:center; gap:12px;">
+                <div data-failure-start="{{ $failureStart }}" data-category-id="{{ $it['category_id'] ?? '' }}"
+                    style="display:flex; align-items:center; gap:12px;">
                     <div style="flex:1">
                         <div style="font-size:13px; font-weight:600; color:{{ $textColor }}">{{ $it['label'] }}
                         </div>
@@ -107,28 +123,70 @@
         var btn = document.getElementById(id + "_filter_btn");
         var label = document.getElementById(id + "_filter_label");
         var dropdown = document.getElementById(id + "_filter_dropdown");
-        var start = document.getElementById(id + "_start");
-        var end = document.getElementById(id + "_end");
+        var categorySearch = document.getElementById(id + "_category_search");
+        var categoryList = document.getElementById(id + "_category_list");
+        var toggleAll = document.getElementById(id + "_toggle_all");
+        var categoriesData = @json($categories ?? []);
         var apply = document.getElementById(id + "_apply");
         var cancel = document.getElementById(id + "_cancel");
         var clear = document.getElementById(id + "_clear");
         var listEl = document.getElementById(id + "_list");
 
-        function formatDisplay(s, e) {
-            if (!s || !e) return "Filter";
-            var sd = new Date(s);
-            var ed = new Date(e);
-            var opts = {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-            };
-            try {
-                return sd.toLocaleDateString(undefined, opts) + " - " + ed.toLocaleDateString(undefined, opts);
-            } catch (err) {
-                return s + " - " + e;
-            }
+        function getCategoryCheckboxes() {
+            if (!categoryList) return [];
+            return Array.prototype.slice.call(categoryList.querySelectorAll('input.filter-cat-checkbox'));
         }
+
+        function formatCategoryDisplay(selected) {
+            if (!selected) return 'Filter';
+            var ids = Array.isArray(selected) ? selected : [selected];
+            if (ids.length === 0) return 'Filter';
+            var names = ids.map(function(id) {
+                var f = (categoriesData || []).find(function(c) {
+                    return String(c.id) === String(id);
+                });
+                return f ? f.name : String(id);
+            });
+            if (names.length === 1) return names[0];
+            // Show only the first selected category and indicate how many more are selected
+            if (names.length > 1) return names[0] + ' +' + (names.length - 1) + ' More';
+            return 'Filter';
+        }
+
+        function updateToggleAllState() {
+            if (!toggleAll || !categoryList) return;
+            var boxes = getCategoryCheckboxes();
+            var visible = boxes.filter(function(b) {
+                var wrapper = b.closest('[data-cat-name]');
+                return !wrapper || wrapper.style.display !== 'none';
+            });
+            if (visible.length === 0) {
+                toggleAll.checked = false;
+                toggleAll.indeterminate = false;
+                return;
+            }
+            var allChecked = visible.every(function(b) {
+                return b.checked;
+            });
+            var someChecked = visible.some(function(b) {
+                return b.checked;
+            });
+            toggleAll.checked = allChecked;
+            toggleAll.indeterminate = !allChecked && someChecked;
+        }
+
+        function bindCategoryCheckboxListeners() {
+            var boxes = getCategoryCheckboxes();
+            boxes.forEach(function(b) {
+                b.addEventListener('change', function() {
+                    updateToggleAllState();
+                });
+            });
+        }
+
+        // initialize listeners/state
+        bindCategoryCheckboxListeners();
+        updateToggleAllState();
 
         function doLivewireEmit(eventName, payload) {
             if (window.Livewire && typeof window.Livewire.emit === 'function') {
@@ -142,10 +200,17 @@
             return false;
         }
 
-        function doRefreshRequest(startVal, endVal) {
+        function doRefreshRequestCategory(categoryIds) {
             if (!refreshUrl || !listEl) return;
-            var url = refreshUrl + '?start=' + encodeURIComponent(startVal || '') + '&end=' + encodeURIComponent(
-                endVal || '');
+            var params = new URLSearchParams();
+            if (Array.isArray(categoryIds)) {
+                categoryIds.forEach(function(cid) {
+                    params.append('category_ids[]', cid);
+                });
+            } else if (categoryIds) {
+                params.append('category_ids[]', categoryIds);
+            }
+            var url = refreshUrl + (params.toString() ? ('?' + params.toString()) : '');
             fetch(url, {
                     credentials: 'same-origin',
                     headers: {
@@ -165,33 +230,30 @@
                 });
         }
 
-        function applyLocalFilter(startVal, endVal) {
+        function applyLocalFilterCategory(categoryIds) {
             if (!listEl) return;
-            var rows = listEl.querySelectorAll('[data-failure-start]');
+            var rows = listEl.querySelectorAll('[data-category-id]');
             var prevScroll = listEl.scrollTop;
-            // If no start/end provided, show all (use flex to preserve layout)
-            if (!startVal || !endVal) {
+            var ids = categoryIds;
+            if (!ids) ids = [];
+            if (!Array.isArray(ids)) ids = [ids];
+            if (ids.length === 0) {
                 rows.forEach(function(r) {
                     r.style.display = 'flex';
                 });
-                // restore scroll
                 listEl.scrollTop = prevScroll;
                 return;
             }
-            // Compare as YYYY-MM-DD strings (lexicographic safe)
+            var s = new Set(ids.map(String));
             rows.forEach(function(r) {
-                var v = r.dataset.failureStart || '';
+                var v = r.dataset.categoryId || '';
                 if (!v) {
                     r.style.display = 'none';
                     return;
                 }
-                if (v >= startVal && v <= endVal) {
-                    r.style.display = 'flex';
-                } else {
-                    r.style.display = 'none';
-                }
+                if (s.has(String(v))) r.style.display = 'flex';
+                else r.style.display = 'none';
             });
-            // restore scroll
             listEl.scrollTop = prevScroll;
         }
 
@@ -208,31 +270,28 @@
         if (apply) {
             apply.addEventListener('click', function(e) {
                 e.preventDefault();
-                if (!start.value || !end.value) {
-                    return;
-                }
-                var s = start.value;
-                var en = end.value;
-                label.textContent = formatDisplay(s, en);
-                label.style.display = 'inline-block';
+                var boxes = getCategoryCheckboxes();
+                var selected = boxes.filter(function(b) {
+                    return b.checked;
+                }).map(function(b) {
+                    return b.value;
+                });
+                label.textContent = formatCategoryDisplay(selected);
+                label.style.display = selected && selected.length ? 'inline-block' : 'none';
                 if (dropdown) dropdown.style.display = 'none';
                 if (btn) btn.setAttribute('aria-expanded', 'false');
                 var detail = {
                     id: id,
-                    start: s,
-                    end: en
+                    category_ids: selected
                 };
-                var event = new CustomEvent('assetsFailuresFilterChanged', {
+                document.dispatchEvent(new CustomEvent('assetsFailuresFilterChanged', {
                     detail: detail
-                });
-                document.dispatchEvent(event);
-                // emit for Livewire listeners too (if present)
+                }));
                 doLivewireEmit('assetsFailuresFilterChanged', detail);
-                // If a refresh URL is provided, request server-side partial, otherwise filter locally
                 if (refreshUrl) {
-                    doRefreshRequest(s, en);
+                    doRefreshRequestCategory(selected);
                 } else {
-                    applyLocalFilter(s, en);
+                    applyLocalFilterCategory(selected);
                 }
             });
         }
@@ -244,10 +303,39 @@
             });
         }
 
+        // toggle-all behavior: check/uncheck visible checkboxes
+        if (toggleAll) {
+            toggleAll.addEventListener('change', function() {
+                var boxes = getCategoryCheckboxes();
+                var checked = !!this.checked;
+                boxes.forEach(function(b) {
+                    var wrapper = b.closest('[data-cat-name]');
+                    if (wrapper && wrapper.style.display === 'none') return;
+                    b.checked = checked;
+                });
+                updateToggleAllState();
+            });
+        }
+
+        // search/filter the checkbox list
+        if (categorySearch && categoryList) {
+            categorySearch.addEventListener('input', function() {
+                var q = String(this.value || '').toLowerCase().trim();
+                var items = categoryList.querySelectorAll('[data-cat-name]');
+                items.forEach(function(it) {
+                    var name = String(it.dataset.catName || '').toLowerCase();
+                    it.style.display = (!q || name.indexOf(q) !== -1) ? '' : 'none';
+                });
+                updateToggleAllState();
+            });
+        }
+
         if (clear) {
             clear.addEventListener('click', function(e) {
-                if (start) start.value = '';
-                if (end) end.value = '';
+                var boxes = getCategoryCheckboxes();
+                boxes.forEach(function(b) {
+                    b.checked = false;
+                });
                 if (label) {
                     label.textContent = 'Filter';
                     label.style.display = 'none';
@@ -256,19 +344,18 @@
                 if (btn) btn.setAttribute('aria-expanded', 'false');
                 var detail = {
                     id: id,
-                    start: null,
-                    end: null
+                    category_ids: []
                 };
-                var event = new CustomEvent('assetsFailuresFilterChanged', {
+                document.dispatchEvent(new CustomEvent('assetsFailuresFilterChanged', {
                     detail: detail
-                });
-                document.dispatchEvent(event);
+                }));
                 doLivewireEmit('assetsFailuresFilterChanged', detail);
                 if (refreshUrl) {
-                    doRefreshRequest('', '');
+                    doRefreshRequestCategory([]);
                 } else {
-                    applyLocalFilter('', '');
+                    applyLocalFilterCategory([]);
                 }
+                updateToggleAllState();
             });
         }
 

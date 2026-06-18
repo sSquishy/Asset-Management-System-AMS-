@@ -241,9 +241,12 @@
                                     if ($rightGroup && $rightGroup.length) break;
                                 }
                                 if (!$rightGroup || !$rightGroup.length) return false;
-                                var $fullscreen = $rightGroup.find('.tableButton').filter(function() {
-                                    return $(this).find('.fa-expand').length || $(this).find('.fa-expand-arrows-alt').length;
-                                }).first();
+                                var $fullscreen = $rightGroup.find('.tableButton').filter(
+                                    function() {
+                                        return $(this).find('.fa-expand').length || $(
+                                                this).find('.fa-expand-arrows-alt')
+                                            .length;
+                                    }).first();
                                 if ($fullscreen && $fullscreen.length) {
                                     $catBtn.detach().insertAfter($fullscreen);
                                 } else {
@@ -255,15 +258,18 @@
 
                             try {
                                 var $currentTable = $(this);
-                                var tableId = $currentTable && $currentTable.attr ? $currentTable.attr('id') : null;
+                                var tableId = $currentTable && $currentTable.attr ?
+                                    $currentTable.attr('id') : null;
                                 if (tableId) {
                                     var moved = placeCatBtn(tableId);
                                     if (!moved) {
                                         // retry a few times in case bootstrap-table moves toolbar later
-                                        for (var attempt = 1; attempt <= 6 && !moved; attempt++) {
+                                        for (var attempt = 1; attempt <= 6 && !
+                                            moved; attempt++) {
                                             (function(attemptNo) {
                                                 setTimeout(function() {
-                                                    moved = placeCatBtn(tableId) || moved;
+                                                    moved = placeCatBtn(
+                                                        tableId) || moved;
                                                 }, attemptNo * 100);
                                             })(attempt);
                                         }
@@ -276,7 +282,8 @@
                             (function() {
                                 function reorderToolbar(tableId) {
                                     if (!tableId) return false;
-                                    var $wrapper = $('#' + tableId).closest('.bootstrap-table');
+                                    var $wrapper = $('#' + tableId).closest(
+                                        '.bootstrap-table');
                                     if (!$wrapper || !$wrapper.length) return false;
                                     var tried = [
                                         '.fixed-table-toolbar .columns-right .btn-group.pull-right',
@@ -290,18 +297,32 @@
                                         $rightGroup = $wrapper.find(tried[i]).first();
                                         if ($rightGroup && $rightGroup.length) break;
                                     }
-                                    if (!$rightGroup || !$rightGroup.length) return false;
+                                    if (!$rightGroup || !$rightGroup.length)
+                                    return false;
 
                                     // find buttons by icon selectors
-                                    var $columnsBtn = $rightGroup.find('i.fa-columns').closest('button, a');
-                                    var $refreshBtn = $rightGroup.find('i[class*="fa-sync"]').closest('button, a');
-                                    var $btnExportBtn = $rightGroup.find('i[class*="fa-file-csv"]').closest('button, a');
-                                    var $exportBtn = $rightGroup.find('i[class*="fa-download"]').closest('button, a');
-                                    var $printBtn = $rightGroup.find('i.fa-print').closest('button, a');
-                                    var $fullscreenBtn = $rightGroup.find('i[class*="fa-expand"]').closest('button, a');
-                                    var $catBtn = $('[data-target-table="#' + tableId + '"]').first();
+                                    var $columnsBtn = $rightGroup.find('i.fa-columns')
+                                        .closest('button, a');
+                                    var $refreshBtn = $rightGroup.find(
+                                        'i[class*="fa-sync"]').closest('button, a');
+                                    var $btnExportBtn = $rightGroup.find(
+                                        'i[class*="fa-file-csv"]').closest(
+                                        'button, a');
+                                    var $exportBtn = $rightGroup.find(
+                                        'i[class*="fa-download"]').closest(
+                                        'button, a');
+                                    var $printBtn = $rightGroup.find('i.fa-print')
+                                        .closest('button, a');
+                                    var $fullscreenBtn = $rightGroup.find(
+                                        'i[class*="fa-expand"]').closest(
+                                        'button, a');
+                                    var $catBtn = $('[data-target-table="#' + tableId +
+                                        '"]').first();
 
-                                    var order = [$columnsBtn, $refreshBtn, $btnExportBtn, $exportBtn, $printBtn, $fullscreenBtn, $catBtn];
+                                    var order = [$columnsBtn, $refreshBtn,
+                                        $btnExportBtn, $exportBtn, $printBtn,
+                                        $fullscreenBtn, $catBtn
+                                    ];
                                     var placedAny = false;
                                     for (var j = 0; j < order.length; j++) {
                                         var $el = order[j];
@@ -315,14 +336,18 @@
 
                                 try {
                                     var $currentTable2 = $(this);
-                                    var tableId2 = $currentTable2 && $currentTable2.attr ? $currentTable2.attr('id') : null;
+                                    var tableId2 = $currentTable2 && $currentTable2
+                                        .attr ? $currentTable2.attr('id') : null;
                                     if (tableId2) {
                                         var done = reorderToolbar(tableId2);
                                         if (!done) {
                                             for (var a = 1; a <= 6 && !done; a++) {
                                                 (function(attemptNo) {
                                                     setTimeout(function() {
-                                                        done = reorderToolbar(tableId2) || done;
+                                                        done =
+                                                            reorderToolbar(
+                                                                tableId2) ||
+                                                            done;
                                                     }, attemptNo * 120);
                                                 })(a);
                                             }
@@ -333,39 +358,49 @@
                                 }
                             })();
 
-                        // Ensure Category Filter is immediately left of the fullscreen button in the right-side group
-                        (function ensureCatBeforeFullscreen() {
-                            var tries = 0;
-                            function tryPlace() {
-                                var $table = $('#dashPredictedReplacements');
-                                var $catBtn = $('[data-target-table="#dashPredictedReplacements"]').first();
-                                if (!$table.length || !$catBtn.length) {
-                                    if (++tries < 8) setTimeout(tryPlace, 150);
-                                    return;
-                                }
-                                var $wrapper = $table.closest('.bootstrap-table');
-                                if (!$wrapper || !$wrapper.length) {
-                                    if (++tries < 8) setTimeout(tryPlace, 150);
-                                    return;
-                                }
-                                var $rightGroup = $wrapper.find('.fixed-table-toolbar .columns-right .btn-group.pull-right, .fixed-table-toolbar .btn-group.pull-right, .fixed-table-toolbar .columns-right .btn-group, .fixed-table-toolbar .pull-right .btn-group').first();
-                                if (!$rightGroup || !$rightGroup.length) {
-                                    if (++tries < 8) setTimeout(tryPlace, 150);
-                                    return;
-                                }
+                            // Ensure Category Filter is immediately left of the fullscreen button in the right-side group
+                            (function ensureCatBeforeFullscreen() {
+                                var tries = 0;
 
-                                var $fullscreen = $rightGroup.find('.tableButton').filter(function() {
-                                    return $(this).find('.fa-expand').length || $(this).find('.fa-expand-arrows-alt').length || $(this).find('.fa-expand-arrows').length;
-                                }).first();
-                                if ($fullscreen && $fullscreen.length) {
-                                    $catBtn.detach().insertAfter($fullscreen);
-                                } else {
-                                    $rightGroup.append($catBtn);
+                                function tryPlace() {
+                                    var $table = $('#dashPredictedReplacements');
+                                    var $catBtn = $(
+                                        '[data-target-table="#dashPredictedReplacements"]'
+                                        ).first();
+                                    if (!$table.length || !$catBtn.length) {
+                                        if (++tries < 8) setTimeout(tryPlace, 150);
+                                        return;
+                                    }
+                                    var $wrapper = $table.closest('.bootstrap-table');
+                                    if (!$wrapper || !$wrapper.length) {
+                                        if (++tries < 8) setTimeout(tryPlace, 150);
+                                        return;
+                                    }
+                                    var $rightGroup = $wrapper.find(
+                                        '.fixed-table-toolbar .columns-right .btn-group.pull-right, .fixed-table-toolbar .btn-group.pull-right, .fixed-table-toolbar .columns-right .btn-group, .fixed-table-toolbar .pull-right .btn-group'
+                                        ).first();
+                                    if (!$rightGroup || !$rightGroup.length) {
+                                        if (++tries < 8) setTimeout(tryPlace, 150);
+                                        return;
+                                    }
+
+                                    var $fullscreen = $rightGroup.find('.tableButton')
+                                        .filter(function() {
+                                            return $(this).find('.fa-expand')
+                                                .length || $(this).find(
+                                                    '.fa-expand-arrows-alt')
+                                                .length || $(this).find(
+                                                    '.fa-expand-arrows').length;
+                                        }).first();
+                                    if ($fullscreen && $fullscreen.length) {
+                                        $catBtn.detach().insertAfter($fullscreen);
+                                    } else {
+                                        $rightGroup.append($catBtn);
+                                    }
+                                    $catBtn.addClass('tableButton');
                                 }
-                                $catBtn.addClass('tableButton');
-                            }
-                            tryPlace();
-                        })();
+                                tryPlace();
+                            })();
                         })();
                     },
                     formatNoMatches: function() {
@@ -2220,7 +2255,7 @@
                     type: 'checkbox',
                     class: 'category-filter-toggle'
                 });
-                $toggleLabel.append($toggleInput).append(' ' + {!! json_encode('Toggle all') !!});
+                $toggleLabel.append($toggleInput).append(' ' + {!! json_encode('Select All') !!});
                 $menu.append($toggleLabel);
 
                 // divider above the category list (below Toggle all) to match columns filter UI
@@ -2320,7 +2355,8 @@
                         $listContainer = $();
                     }
                 }
-                if ((!$listContainer || !$listContainer.length) && $bootstrapContainer && $bootstrapContainer.length) {
+                if ((!$listContainer || !$listContainer.length) && $bootstrapContainer && $bootstrapContainer
+                    .length) {
                     $listContainer = $bootstrapContainer.find('.list-group, .list-group-flush').first();
                 }
                 $menu.data('targetList', $listContainer || $());
@@ -2400,7 +2436,8 @@
                         if ($rows.length) {
                             if (selected.length) {
                                 var selSet = {};
-                                for (var si = 0; si < selected.length; si++) selSet[String(selected[si])] = true;
+                                for (var si = 0; si < selected.length; si++) selSet[String(selected[si])] =
+                                true;
                                 $rows.each(function() {
                                     var $r = $(this);
                                     var cid = $r.data('category-id');
@@ -2424,7 +2461,8 @@
                             for (var s2 = 0; s2 < selected.length; s2++) selSet2[String(selected[s2])] = true;
                             $items.each(function() {
                                 var $it = $(this);
-                                var cid2 = $it.data('category-id') || $it.find('[data-category-id]').data('category-id');
+                                var cid2 = $it.data('category-id') || $it.find('[data-category-id]')
+                                    .data('category-id');
                                 if (cid2 !== undefined && cid2 !== null && selSet2[String(cid2)]) {
                                     $it.show();
                                 } else {

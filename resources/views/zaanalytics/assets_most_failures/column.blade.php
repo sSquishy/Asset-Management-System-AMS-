@@ -33,6 +33,7 @@
             'label' => $label,
             // Use the `model` slot to show how many assets are in the category
             'model' => $assetsCount . ' assets',
+            'category_id' => $fr->category_id,
             'count' => (int) $fr->failures,
             'last' => $last,
         ];
@@ -42,4 +43,7 @@
 @include('components.assets-most-failures-card', [
     'items' => $failureItems,
     'title' => 'Categories with Most Failures',
+    'categories' => \App\Models\Category::where('category_type', 'asset')->orderBy('name')->get()->map(function ($c) {
+            return ['id' => $c->id, 'name' => $c->name];
+        })->toArray(),
 ])
