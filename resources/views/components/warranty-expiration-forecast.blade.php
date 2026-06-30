@@ -21,13 +21,13 @@
         <div style="display:flex; align-items:center; gap:8px">
             <div style="display:flex; align-items:center; gap:8px; position:relative">
                 <button id="{{ $id }}_filter_btn" type="button" aria-expanded="false" aria-haspopup="dialog"
-                    aria-label="Filter by month" title="Filter by month"
+                    aria-label="Filter by asset" title="Filter by asset"
                     style="display:inline-flex; align-items:center; gap:8px; background:transparent; border:none; padding:6px; border-radius:6px; cursor:pointer; color:{{ $textColor }};">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                         xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path d="M3 7h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                        <path d="M7 11h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                        <path d="M7 15h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                        <path d="M3 5h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                        <path d="M6 12h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                        <path d="M10 19h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                     </svg>
                     <span id="{{ $id }}_filter_label"
                         style="font-size:13px; display:none; color:{{ $textColor }}; white-space:nowrap;">Filter</span>
@@ -36,12 +36,27 @@
                 <div id="{{ $id }}_filter_dropdown" role="dialog" aria-modal="false"
                     style="position:absolute; right:0; top:42px; z-index:50; display:none; background:{{ $bg }}; border-radius:8px; padding:12px; box-shadow:0 6px 18px rgba(0,0,0,0.12); width:320px;">
                     <div style="font-size:14px; font-weight:700; margin-bottom:8px; color:{{ $textColor }}">Select
-                        month range</div>
-                    <div style="display:flex; gap:8px; margin-bottom:8px;">
-                        <input id="{{ $id }}_start" type="month"
-                            style="flex:1; padding:8px; border-radius:6px; border:1px solid #e6e9ef; background:transparent; color:{{ $textColor }};">
-                        <input id="{{ $id }}_end" type="month"
-                            style="flex:1; padding:8px; border-radius:6px; border:1px solid #e6e9ef; background:transparent; color:{{ $textColor }};">
+                        asset</div>
+                    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:8px;">
+                        <input id="{{ $id }}_asset_search" type="search" placeholder="Search assets"
+                            style="padding:8px; border-radius:6px; border:1px solid #e6e9ef; background:transparent; color:{{ $textColor }};">
+                        <div id="{{ $id }}_asset_list"
+                            style="max-height:220px; overflow:auto; border-radius:6px; padding:6px; border:1px solid #e6e9ef; background:transparent;">
+                            <label style="display:flex; align-items:center; gap:8px; padding:6px;">
+                                <input id="{{ $id }}_toggle_all" type="checkbox" style="width:16px;height:16px">
+                                <span style="font-size:13px; color:{{ $textColor }}">Select All</span>
+                            </label>
+                            @php $assetsList = $assets ?? []; @endphp
+                            @foreach ($assetsList as $asset)
+                                <label data-asset-name="{{ $asset['label'] }}"
+                                    style="display:flex; align-items:center; gap:8px; padding:6px;">
+                                    <input type="checkbox" class="filter-asset-checkbox" data-asset-id="{{ $asset['id'] }}"
+                                        value="{{ $asset['id'] }}" style="width:16px;height:16px">
+                                    <span
+                                        style="font-size:13px; color:{{ $textColor }}; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; flex:1">{{ $asset['label'] }}</span>
+                                </label>
+                            @endforeach
+                        </div>
                     </div>
                     <div style="display:flex; justify-content:space-between; gap:8px; margin-top:6px;">
                         <button id="{{ $id }}_clear" type="button"
@@ -93,6 +108,7 @@
             var refreshUrl = root.dataset.refreshUrl || null;
             var origSeries = @json($series) || [];
             var origLabels = @json($labels) || [];
+            var assetsData = @json($assets ?? []) || [];
             var displaySeries = origSeries.slice();
             var displayLabels = origLabels.slice();
             var svg = root.querySelector('svg.warranty-forecast-svg');
@@ -101,62 +117,7 @@
             var pointsGroup = root.querySelector('g.warranty-points');
             var tooltip = root.querySelector('.warranty-tooltip');
 
-            // parse label strings to month-start dates for reliable comparison
-            var labelDates = (origLabels || []).map(function(l) {
-                if (!l) return new Date(NaN);
-                var d = new Date(l);
-                if (!isNaN(d)) return new Date(d.getFullYear(), d.getMonth(), 1);
-                // fallback parse 'M Y' where M is short english month
-                var parts = String(l).trim().split(/\s+/);
-                var mnames = {
-                    Jan: 0,
-                    Feb: 1,
-                    Mar: 2,
-                    Apr: 3,
-                    May: 4,
-                    Jun: 5,
-                    Jul: 6,
-                    Aug: 7,
-                    Sep: 8,
-                    Oct: 9,
-                    Nov: 10,
-                    Dec: 11
-                };
-                var mon = mnames[parts[0]];
-                var yr = parseInt(parts[1], 10);
-                if (typeof mon === 'number' && !isNaN(yr)) return new Date(yr, mon, 1);
-                return new Date(NaN);
-            });
-
-            function monthKeyFromYYYYMM(yyyymm) {
-                var p = String(yyyymm || '').split('-');
-                if (p.length < 2) return NaN;
-                var y = parseInt(p[0], 10);
-                var m = parseInt(p[1], 10);
-                if (isNaN(y) || isNaN(m)) return NaN;
-                return y * 100 + m;
-            }
-
-            function monthKeyFromDate(d) {
-                return d.getFullYear() * 100 + (d.getMonth() + 1);
-            }
-
-            function formatMonthLabelFromYYYYMM(v) {
-                if (!v) return 'Filter';
-                var p = String(v).split('-');
-                if (p.length < 2) return v;
-                var y = parseInt(p[0], 10);
-                var m = parseInt(p[1], 10) - 1;
-                var dt = new Date(y, m, 1);
-                try {
-                    return dt.toLocaleDateString(undefined, {
-                        month: 'short',
-                        year: 'numeric'
-                    });
-                } catch (e) {
-                    return String(v);
-                }
-            }
+            // the chart itself is static for warranty forecast; filtering is only exposed via asset selection UI
 
             function render() {
                 var series = displaySeries || [];
@@ -235,31 +196,6 @@
             }
 
             // filtering helpers
-            function applyMonthFilter(startVal, endVal) {
-                if (!startVal || !endVal) {
-                    displaySeries = origSeries.slice();
-                    displayLabels = origLabels.slice();
-                    render();
-                    return;
-                }
-                var sk = monthKeyFromYYYYMM(startVal);
-                var ek = monthKeyFromYYYYMM(endVal);
-                var ns = [],
-                    nl = [];
-                for (var i = 0; i < labelDates.length; i++) {
-                    var d = labelDates[i];
-                    if (isNaN(d)) continue;
-                    var k = monthKeyFromDate(d);
-                    if (k >= sk && k <= ek) {
-                        ns.push(origSeries[i]);
-                        nl.push(origLabels[i]);
-                    }
-                }
-                displaySeries = ns;
-                displayLabels = nl;
-                render();
-            }
-
             function doLivewireEmit(evt, payload) {
                 if (window.Livewire && typeof window.Livewire.emit === 'function') {
                     window.Livewire.emit(evt, payload);
@@ -272,58 +208,6 @@
                 return false;
             }
 
-            function doRefreshRequest(startVal, endVal) {
-                if (!refreshUrl) return;
-                var url = refreshUrl + '?start=' + encodeURIComponent(startVal || '') + '&end=' + encodeURIComponent(
-                    endVal || '');
-                fetch(url, {
-                        credentials: 'same-origin',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        }
-                    })
-                    .then(function(r) {
-                        if (!r.ok) throw new Error('Network error');
-                        return r.json();
-                    })
-                    .then(function(data) {
-                        if (Array.isArray(data.series)) {
-                            origSeries = data.series;
-                            origLabels = data.labels || origLabels;
-                            labelDates = (origLabels || []).map(function(l) {
-                                var d = new Date(l);
-                                if (!isNaN(d)) return new Date(d.getFullYear(), d.getMonth(), 1);
-                                var parts = String(l).trim().split(/\s+/);
-                                var mnames = {
-                                    Jan: 0,
-                                    Feb: 1,
-                                    Mar: 2,
-                                    Apr: 3,
-                                    May: 4,
-                                    Jun: 5,
-                                    Jul: 6,
-                                    Aug: 7,
-                                    Sep: 8,
-                                    Oct: 9,
-                                    Nov: 10,
-                                    Dec: 11
-                                };
-                                var mon = mnames[parts[0]];
-                                var yr = parseInt(parts[1], 10);
-                                if (typeof mon === 'number' && !isNaN(yr)) return new Date(yr, mon, 1);
-                                return new Date(NaN);
-                            });
-                            displaySeries = origSeries.slice();
-                            displayLabels = origLabels.slice();
-                            render();
-                        }
-                    })
-                    .catch(function(e) {
-                        console.error('warranty refresh failed', e);
-                    });
-            }
-
             // initial render
             render();
 
@@ -332,11 +216,51 @@
             var btn = document.getElementById(fid + '_filter_btn');
             var flabel = document.getElementById(fid + '_filter_label');
             var dropdown = document.getElementById(fid + '_filter_dropdown');
-            var start = document.getElementById(fid + '_start');
-            var end = document.getElementById(fid + '_end');
+            var assetSearch = document.getElementById(fid + '_asset_search');
+            var assetList = document.getElementById(fid + '_asset_list');
+            var toggleAll = document.getElementById(fid + '_toggle_all');
             var applyBtn = document.getElementById(fid + '_apply');
             var cancel = document.getElementById(fid + '_cancel');
             var clear = document.getElementById(fid + '_clear');
+
+            function getAssetCheckboxes() {
+                if (!assetList) return [];
+                return Array.prototype.slice.call(assetList.querySelectorAll('input.filter-asset-checkbox'));
+            }
+
+            function updateToggleAllState() {
+                if (!toggleAll || !assetList) return;
+                var boxes = getAssetCheckboxes();
+                var visible = boxes.filter(function(b) {
+                    var wrapper = b.closest('[data-asset-name]');
+                    return !wrapper || wrapper.style.display !== 'none';
+                });
+                if (visible.length === 0) {
+                    toggleAll.checked = false;
+                    toggleAll.indeterminate = false;
+                    return;
+                }
+                var allChecked = visible.every(function(b) {
+                    return b.checked;
+                });
+                var someChecked = visible.some(function(b) {
+                    return b.checked;
+                });
+                toggleAll.checked = allChecked;
+                toggleAll.indeterminate = !allChecked && someChecked;
+            }
+
+            function bindAssetCheckboxListeners() {
+                var boxes = getAssetCheckboxes();
+                boxes.forEach(function(b) {
+                    b.addEventListener('change', function() {
+                        updateToggleAllState();
+                    });
+                });
+            }
+
+            bindAssetCheckboxListeners();
+            updateToggleAllState();
 
             if (btn) {
                 btn.addEventListener('click', function(e) {
@@ -350,27 +274,28 @@
             if (applyBtn) {
                 applyBtn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    if (!start.value || !end.value) return;
-                    var s = start.value;
-                    var en = end.value;
-                    flabel.textContent = formatMonthLabelFromYYYYMM(s) + ' - ' + formatMonthLabelFromYYYYMM(en);
+                    var boxes = getAssetCheckboxes();
+                    var selected = boxes.filter(function(b) {
+                        return b.checked;
+                    }).map(function(b) {
+                        return b.value;
+                    });
+                    if (selected.length === 0) return;
+                    var first = boxes.find(function(b) { return b.checked; });
+                    var firstLabel = first ? first.closest('[data-asset-name]').dataset.assetName : 'Asset';
+                    flabel.textContent = selected.length === 1 ? firstLabel : firstLabel + ' +' + (selected.length - 1) + ' More';
                     flabel.style.display = 'inline-block';
                     if (dropdown) dropdown.style.display = 'none';
                     if (btn) btn.setAttribute('aria-expanded', 'false');
                     var detail = {
                         id: fid,
-                        start: s,
-                        end: en
+                        asset_ids: selected
                     };
                     document.dispatchEvent(new CustomEvent('warrantyFilterChanged', {
                         detail: detail
                     }));
                     doLivewireEmit('warrantyFilterChanged', detail);
-                    if (refreshUrl) {
-                        doRefreshRequest(s, en);
-                    } else {
-                        applyMonthFilter(s, en);
-                    }
+                    updateToggleAllState();
                 });
             }
             if (cancel) {
@@ -381,8 +306,8 @@
             }
             if (clear) {
                 clear.addEventListener('click', function(e) {
-                    if (start) start.value = '';
-                    if (end) end.value = '';
+                    var boxes = getAssetCheckboxes();
+                    boxes.forEach(function(b) { b.checked = false; });
                     if (flabel) {
                         flabel.textContent = 'Filter';
                         flabel.style.display = 'none';
@@ -391,18 +316,38 @@
                     if (btn) btn.setAttribute('aria-expanded', 'false');
                     var detail = {
                         id: fid,
-                        start: null,
-                        end: null
+                        asset_ids: []
                     };
                     document.dispatchEvent(new CustomEvent('warrantyFilterChanged', {
                         detail: detail
                     }));
                     doLivewireEmit('warrantyFilterChanged', detail);
-                    if (refreshUrl) {
-                        doRefreshRequest('', '');
-                    } else {
-                        applyMonthFilter('', '');
-                    }
+                    updateToggleAllState();
+                });
+            }
+
+            if (assetSearch && assetList) {
+                assetSearch.addEventListener('input', function() {
+                    var q = String(this.value || '').toLowerCase().trim();
+                    var items = assetList.querySelectorAll('[data-asset-name]');
+                    items.forEach(function(it) {
+                        var name = String(it.dataset.assetName || '').toLowerCase();
+                        it.style.display = (!q || name.indexOf(q) !== -1) ? '' : 'none';
+                    });
+                    updateToggleAllState();
+                });
+            }
+
+            if (toggleAll) {
+                toggleAll.addEventListener('change', function() {
+                    var boxes = getAssetCheckboxes();
+                    var checked = !!this.checked;
+                    boxes.forEach(function(b) {
+                        var wrapper = b.closest('[data-asset-name]');
+                        if (wrapper && wrapper.style.display === 'none') return;
+                        b.checked = checked;
+                    });
+                    updateToggleAllState();
                 });
             }
 

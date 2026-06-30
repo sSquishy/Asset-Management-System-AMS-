@@ -38,4 +38,10 @@
 @include('components.warranty-expiration-forecast', [
     'series' => $warrantySeries,
     'labels' => $warrantyLabels,
+    'assets' => $assets->map(function ($a) {
+        return [
+            'id' => $a->id,
+            'label' => $a->name ?: ($a->asset_tag ?: 'Asset #' . $a->id),
+        ];
+    })->toArray(),
 ])
